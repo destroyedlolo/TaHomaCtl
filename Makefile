@@ -5,7 +5,7 @@ gotoall: all
 
 
 #The compiler (may be customized for compiler's options).
-cc=cc -Wall -O2
+cc=cc -Wall -pedantic -O2
 opts=
 
 TaHomaCtl.o : TaHomaCtl.c Config.h Makefile 
