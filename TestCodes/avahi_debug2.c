@@ -386,8 +386,7 @@ int main(int argc,char*argv[]) {
     AvahiClient *client = avahi_client_new(avahi_simple_poll_get(poll), 0, client_callback, NULL, NULL);
     if(!client){ fprintf(stderr,"Failed to create Avahi client\n"); return 1; }
 
-    AvahiServiceBrowser *browser = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
-                                                            stype, domain, 0, browse_callback, client);
+    AvahiServiceBrowser *browser = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, stype, domain, 0, browse_callback, client);
     if(!browser){ fprintf(stderr,"Failed to create Avahi browser\n"); return 1; }
 
     avahi_simple_poll_loop(poll);
