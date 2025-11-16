@@ -22,6 +22,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <arpa/inet.h>
+
 #include <avahi-common/defs.h>
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
@@ -123,6 +125,101 @@ static char* txt_to_string(AvahiStringList *txt) {
     return s;
 }
 
+/* Convert DNS Class to string */
+static const char* dns_class_to_string(uint16_t cls) {
+    switch(cls) {
+        case AVAHI_DNS_CLASS_IN: return "IN (Internet)";
+        default: return "UNKNOWN";
+    }
+}
+
+/* Convert DNS Type to string */
+static const char* dns_type_to_string(uint16_t type) {
+    switch(type) {
+        case AVAHI_DNS_TYPE_A: return "A (IPv4 Address)";
+        case AVAHI_DNS_TYPE_AAAA: return "AAAA (IPv6 Address)";
+        case AVAHI_DNS_TYPE_PTR: return "PTR (Pointer)";
+        case AVAHI_DNS_TYPE_SRV: return "SRV (Service Location)";
+        case AVAHI_DNS_TYPE_TXT: return "TXT (Text)";
+        case AVAHI_DNS_TYPE_CNAME: return "CNAME (Canonical Name)";
+        // Ajoutez d'autres types courants au besoin
+        default: return "UNKNOWN";
+    }
+}
+
+/* Décodage et affichage du RDATA */
+static void display_rdata(uint16_t type, const void *rdata, size_t size) {
+    if (size == 0 || !rdata) {
+        printf("    RDATA: (empty)\n");
+        return;
+    }
+    
+    printf("    RDATA (%zu bytes):\n", size);
+
+    switch(type) {
+        case AVAHI_DNS_TYPE_A: {
+            if (size == 4) {
+                char ip_str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, rdata, ip_str, sizeof(ip_str));
+                printf("        Address: %s\n", ip_str);
+            } else {
+                printf("        Error: unexpected size for A record.\n");
+            }
+            break;
+        }
+        case AVAHI_DNS_TYPE_AAAA: {
+            if (size == 16) {
+                char ip_str[INET6_ADDRSTRLEN];
+                inet_ntop(AF_INET6, rdata, ip_str, sizeof(ip_str));
+                printf("        Address: %s\n", ip_str);
+            } else {
+                printf("        Error: unexpected size for AAAA record.\n");
+            }
+            break;
+        }
+        case AVAHI_DNS_TYPE_SRV: {
+            // Structure SRV: 2 octets Priorité, 2 octets Poids, 2 octets Port, Reste Nom de la cible
+            if (size >= 6) {
+                const uint16_t *p = rdata;
+                uint16_t priority = ntohs(*p++);
+                uint16_t weight = ntohs(*p++);
+                uint16_t port = ntohs(*p++);
+                
+                // Le reste du RDATA est le nom de la cible au format DNS compressé.
+                // Avahi fournit une fonction pour décoder, mais c'est complexe sans l'API complète
+                // qui gère la décompression des étiquettes DNS (avahi_dns_record_to_string).
+                // Par simplicité, on affiche le début des données brutes ici.
+                printf("        Priority: %u, Weight: %u, Port: %u\n", priority, weight, port);
+                // Note: Décoder le nom de la cible (`target`) est non trivial ici, car il est dans le format
+                // compressé du DNS. Pour un débogage complet, utilisez `avahi_dns_record_to_string`.
+            } else {
+                printf("        Error: unexpected size for SRV record.\n");
+            }
+            break;
+        }
+        case AVAHI_DNS_TYPE_TXT: {
+             // La fonction avahi_string_list_from_string_array_data décoderait TXT, mais
+             // nous n'avons ici que les données brutes. Affichons-les en hexadécimal.
+             printf("        Raw TXT data (first 32 bytes):\n        ");
+             for(size_t i = 0; i < size && i < 32; i++) {
+                 printf("%02x ", ((const unsigned char*)rdata)[i]);
+             }
+             if (size > 32) printf("...");
+             printf("\n");
+             break;
+        }
+        default: {
+            // Affichage hexadécimal pour les types non gérés
+            printf("        Raw data (first 32 bytes):\n        ");
+            for(size_t i = 0; i < size && i < 32; i++) {
+                printf("%02x ", ((const unsigned char*)rdata)[i]);
+            }
+            if (size > 32) printf("...");
+            printf("\n");
+        }
+    }
+}
+
 /* Record Browser callback */
 static void record_callback(
     AvahiRecordBrowser *b,
@@ -145,12 +242,18 @@ static void record_callback(
     char flagstr[128];
     lookup_flags_to_string(flags, flagstr, sizeof(flagstr)); // Remplissage de la chaîne des flags
 
-    switch(event) {
-        case AVAHI_BROWSER_NEW:
-            printf("%s RECORD_FOUND: name='%s' class=%u type=%u flags=0x%x (%s)\n", ts, name, cls, type, flags, flagstr);
-            break;
+	const char *cls_str = dns_class_to_string(cls);
+    const char *type_str = dns_type_to_string(type);
+
+	switch(event) {
+		case AVAHI_BROWSER_NEW:
+			printf("%s RECORD_FOUND: name='%s' class=%s(0x%x) type=%s(0x%x) flags=0x%x (%s)\n",
+            	ts, name, cls_str, cls, type_str, type, flags, flagstr);
+	            display_rdata(type, rdata, size);
+			break;
         case AVAHI_BROWSER_REMOVE:
-            printf("%s RECORD_REMOVED: name='%s' class=%u type=%u flags=0x%x (%s)\n", ts, name, cls, type, flags, flagstr);
+            printf("%s RECORD_REMOVED: name='%s' class=%s(0x%x) type=%s(0x%x) flags=0x%x (%s)\n",
+                   ts, name, cls_str, cls, type_str, type, flags, flagstr);
             break;
         default: break;
     }
