@@ -53,10 +53,6 @@ void clean(char **obj){
 	}
 }
 
-	/* ***
-	 * Commands interpreter
-	 * ***/
-
 static const char *affval(const char *v){
 	if(v)
 		return v;
@@ -64,7 +60,19 @@ static const char *affval(const char *v){
 		return "Not set";
 }
 
+	/* ***
+	 * Commands interpreter
+	 * ***/
+
 static void func_qmark(const char *);
+
+static void func_token(const char *arg){
+	if(arg){
+		FreeAndSet(&token, arg);
+		puts(arg);
+	} else
+		printf("*I* Token : %s\n", affval(token));
+}
 
 static void func_status(const char *){
 	printf("*I* Current status :\n"
@@ -113,6 +121,7 @@ struct _commands {
 	const char *help;			// Help message
 } Commands[] = {
 	{ "#", NULL, "Comment, ignored line" },
+	{ "token", func_token, "[value] indicate application token" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
 	{ "verbose", func_verbose, "[on|off|] Be verbose" },
