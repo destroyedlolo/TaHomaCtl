@@ -22,6 +22,7 @@
 	 * Configuration
 	 * **/
 char *tahoma = NULL;
+char *ip = NULL;
 uint16_t port = 0;
 char *token = NULL;
 
@@ -56,7 +57,27 @@ void clean(char **obj){
 	 * Commands interpreter
 	 * ***/
 
+static const char *affval(const char *v){
+	if(v)
+		return v;
+	else
+		return "Not set";
+}
+
 static void func_qmark(const char *);
+
+static void func_status(const char *){
+	printf("*I* Current status :\n"
+		"\tTahoma's host : %s\n"
+		"\tTahoma's IP : %s\n"
+		"\tTahoma's port : %d\n"
+		"\tToken : %s\n",
+		affval(tahoma),
+		affval(ip),
+		port,
+		token ? "set": "unset"
+	);
+}
 
 static void func_verbose(const char *arg){
 	if(arg){
@@ -93,6 +114,7 @@ struct _commands {
 } Commands[] = {
 	{ "#", NULL, "Comment, ignored line" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
+	{ "status", func_status, "Display current connection informations" },
 	{ "verbose", func_verbose, "[on|off|] Be verbose" },
 	{ "trace", func_trace, "[on|off|] Trace every commands" },
 	{ "?", func_qmark, "List available commands" },

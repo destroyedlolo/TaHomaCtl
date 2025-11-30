@@ -50,9 +50,11 @@ static void resolve_callback(
 			char a[AVAHI_ADDRESS_STR_MAX];
 			avahi_address_snprint(a, sizeof(a), address);	// Convert AvahiAddress to human-readable string
 
-			printf("\n✨ **Service '%s' found and resolved:**\n", name);
-			printf("  Type: %s, Domain: %s\n", type, domain);
-			printf("  Host: **%s**, Address: **%s**, Port: **%u**\n", host_name, a, port);
+			if(verbose){
+				printf("*I* Service '%s' found and resolved:\n", name);
+				printf("*I*\tType: %s, Domain: %s\n", type, domain);
+				printf("*I*\tHost: '%s', Address: '%s', Port: %u\n", host_name, a, port);
+			}
 
 			if(simple_poll)
 				avahi_simple_poll_quit(simple_poll);
@@ -89,7 +91,7 @@ static void browse_callback(
 		break;
 	case AVAHI_BROWSER_NEW:
 		if(debug)
-			printf("*D* **New service found:** '%s' of type '%s' in domain '%s'\n", name, type, domain);
+			printf("*D* New service found: '%s' of type '%s' in domain '%s'\n", name, type, domain);
 			
 		// Start resolution to get address and port
 		if(!(avahi_service_resolver_new(c, interface, protocol, name, type, domain, avahiIP, 0, resolve_callback, c))){
