@@ -67,18 +67,44 @@ static const char *affval(const char *v){
 static void func_qmark(const char *);
 
 static void func_token(const char *arg){
-	if(arg){
+	if(arg)
 		FreeAndSet(&token, arg);
-		puts(arg);
-	} else
+	else
 		printf("*I* Token : %s\n", affval(token));
+}
+
+static void func_save(const char *arg){
+	if(!arg){
+		fputs("*E* file name expected\n", stderr);
+		return;
+	}
+
+	FILE *f = fopen(arg, "w");
+	if(!f){
+		perror(arg);
+		return;
+	}
+
+	if(tahoma)
+		fprintf(f, "TaHoma_host %s\n", tahoma);
+
+	if(ip)
+		fprintf(f, "TaHoma_address %s\n", ip);
+
+	if(port)
+		fprintf(f, "TaHoma_port %u\n", port);
+
+	if(token)
+		fprintf(f, "TaHoma_port %s\n", token);
+
+	fclose(f);
 }
 
 static void func_status(const char *){
 	printf("*I* Current status :\n"
 		"\tTahoma's host : %s\n"
 		"\tTahoma's IP : %s\n"
-		"\tTahoma's port : %d\n"
+		"\tTahoma's port : %u\n"
 		"\tToken : %s\n",
 		affval(tahoma),
 		affval(ip),
@@ -124,6 +150,7 @@ struct _commands {
 	{ "token", func_token, "[value] indicate application token" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
+	{ "save", func_save, "<file> save current configuration to the given file" },
 	{ "verbose", func_verbose, "[on|off|] Be verbose" },
 	{ "trace", func_trace, "[on|off|] Trace every commands" },
 	{ "?", func_qmark, "List available commands" },
