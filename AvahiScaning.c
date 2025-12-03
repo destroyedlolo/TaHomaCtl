@@ -34,7 +34,7 @@ static void resolve_callback(
 	const char *domain,
 	const char *host_name,
 	const AvahiAddress *address,
-	uint16_t port,
+	uint16_t aport,
 	AvahiStringList *txt,
 	AvahiLookupResultFlags flags,
 	void* userdata){
@@ -61,7 +61,7 @@ static void resolve_callback(
 					"\twide_area: %i\n"
 					"\tmulticast: %i\n"
 					"\tcached: %i\n",
-					host_name, port, a,
+					host_name, aport, a,
 					t,
 					avahi_string_list_get_service_cookie(txt),
 					!!(flags & AVAHI_LOOKUP_RESULT_LOCAL),
@@ -70,7 +70,14 @@ static void resolve_callback(
 					!!(flags & AVAHI_LOOKUP_RESULT_MULTICAST),
 					!!(flags & AVAHI_LOOKUP_RESULT_CACHED)
 				);
+
+			FreeAndSet(&tahoma, host_name);
+			FreeAndSet(&ip, a);
+			port = aport;
+
 			avahi_free(t);
+			avahi_simple_poll_quit(simple_poll);
+			break;
 		}
 	}
 	avahi_service_resolver_free(r);
