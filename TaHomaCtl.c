@@ -64,7 +64,15 @@ static const char *affval(const char *v){
 	 * Commands interpreter
 	 * ***/
 
+static void execscript(const char *);
 static void func_qmark(const char *);
+
+static void func_script(const char *arg){
+	if(arg)
+		execscript(arg);
+	else
+		fputs("*E* Expecting a filename.\n", stderr);
+}
 
 static void func_token(const char *arg){
 	if(arg)
@@ -191,7 +199,8 @@ struct _commands {
 	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
-	{ "save", func_save, "<file> save current configuration to the given file" },
+	{ "save_config", func_save, "<file> save current configuration to the given file as a script" },
+	{ "script", func_script, "<file> execute the given script file" },
 	{ "history", func_history, "List command line history" },
 	{ "verbose", func_verbose, "[on|off|] Be verbose" },
 	{ "trace", func_trace, "[on|off|] Trace every commands" },
