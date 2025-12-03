@@ -73,6 +73,27 @@ static void func_token(const char *arg){
 		printf("*I* Token : %s\n", affval(token));
 }
 
+static void func_THost(const char *arg){
+	if(arg)
+		FreeAndSet(&tahoma, arg);
+	else
+		printf("*I* Tahoma's host : %s\n", affval(tahoma));
+}
+
+static void func_TAddr(const char *arg){
+	if(arg)
+		FreeAndSet(&ip, arg);
+	else
+		printf("*I* Tahoma's IP address : %s\n", affval(ip));
+}
+
+static void func_TPort(const char *arg){
+	if(arg)
+		port = (uint16_t)atoi(arg);
+	else
+		printf("*I* Tahoma's port : %u\n", port);
+}
+
 static void func_save(const char *arg){
 	if(!arg){
 		fputs("*E* file name expected\n", stderr);
@@ -165,6 +186,9 @@ struct _commands {
 } Commands[] = {
 	{ "#", NULL, "Comment, ignored line" },
 	{ "token", func_token, "[value] indicate application token" },
+	{ "TaHoma_host", func_THost, "[name] set or display TaHoma's host" },
+	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address" },
+	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
 	{ "save", func_save, "<file> save current configuration to the given file" },
