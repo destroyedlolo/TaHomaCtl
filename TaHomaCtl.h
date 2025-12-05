@@ -30,6 +30,7 @@ extern bool verbose;
 
 	/* Utilities */
 extern const char *FreeAndSet(char **storage, const char *val);
+extern void buildURL(void);
 
 	/* Sharing functions */
 extern void clean(char **);		// Clean a configuration reference

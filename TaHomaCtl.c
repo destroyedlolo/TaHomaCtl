@@ -34,7 +34,7 @@ bool trace = false;
 bool debug = false;
 
 static const char *ascript = NULL;	/* User script to launch (from launch parameters) */
-static bool nostartup = false;	/* Do not source .tahomactl */
+static bool nostartup = false;	/* Do not source .tahomactrl */
 
 	/* **
 	 * Utilities
@@ -64,6 +64,27 @@ static const char *affval(const char *v){
 		return "Not set";
 }
 
+void buildURL(void){
+	if(!tahoma || !ip || !port || !token)	/* Some information are missing */
+		return;
+
+	if(url){
+		free(url);
+		url = NULL;
+	}
+
+	url_len = strlen("https://::/enduser-mobile-web/1/enduserAPI/");
+	url_len += strlen(tahoma);
+	url_len += 5; /* port: 65535 */
+	url_len += strlen(ip);
+
+	url = malloc(url_len + 1);
+	assert(url);
+
+	if(debug)
+		printf("*D* url: '%s'\n", url);
+}
+
 	/* ***
 	 * Commands interpreter
 	 * ***/
@@ -79,30 +100,34 @@ static void func_script(const char *arg){
 }
 
 static void func_token(const char *arg){
-	if(arg)
+	if(arg){
 		FreeAndSet(&token, arg);
-	else
+		buildURL();
+	} else
 		printf("*I* Token : %s\n", affval(token));
 }
 
 static void func_THost(const char *arg){
-	if(arg)
+	if(arg){
 		FreeAndSet(&tahoma, arg);
-	else
+		buildURL();
+	} else
 		printf("*I* Tahoma's host : %s\n", affval(tahoma));
 }
 
 static void func_TAddr(const char *arg){
-	if(arg)
+	if(arg){
 		FreeAndSet(&ip, arg);
-	else
+		buildURL();
+	} else
 		printf("*I* Tahoma's IP address : %s\n", affval(ip));
 }
 
 static void func_TPort(const char *arg){
-	if(arg)
+	if(arg){
 		port = (uint16_t)atoi(arg);
-	else
+		buildURL();
+	} else
 		printf("*I* Tahoma's port : %u\n", port);
 }
 
