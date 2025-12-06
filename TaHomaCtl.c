@@ -11,7 +11,9 @@
 #include <unistd.h>	/* getopt() */
 #include <stdio.h>
 #include <stdlib.h>
+#if 0
 #include <string.h>
+#endif
 #include <assert.h>
 #include <pwd.h>
 #include <readline/readline.h>
@@ -22,6 +24,7 @@
 	/* **
 	 * Configuration
 	 * **/
+
 char *tahoma = NULL;
 char *ip = NULL;
 uint16_t port = 0;
@@ -62,27 +65,6 @@ static const char *affval(const char *v){
 		return v;
 	else
 		return "Not set";
-}
-
-void buildURL(void){
-	if(!tahoma || !ip || !port || !token)	/* Some information are missing */
-		return;
-
-	if(url){
-		free(url);
-		url = NULL;
-	}
-
-	url_len = strlen("https://:/enduser-mobile-web/1/enduserAPI/");
-	url_len += strlen(tahoma);
-	url_len += 5; /* port: 65535 */
-
-	url = malloc(url_len + 1);
-	assert(url);
-
-	sprintf(url, "https://%s:%u/enduser-mobile-web/1/enduserAPI/", tahoma, port);
-	if(debug)
-		printf("*D* url: '%s'\n", url);
 }
 
 	/* ***
@@ -221,37 +203,52 @@ struct _commands {
 	void(*func)(const char *);	// executor
 	const char *help;			// Help message
 } Commands[] = {
-	{ "#", NULL, "Comment, ignored line" },
-	{ "token", func_token, "[value] indicate application token" },
+	{ NULL, NULL, "TaHoma's Configuration"},
 	{ "TaHoma_host", func_THost, "[name] set or display TaHoma's host" },
 	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address" },
 	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number" },
+	{ "token", func_token, "[value] indicate application token" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
-	{ "save_config", func_save, "<file> save current configuration to the given file as a script" },
-	{ "script", func_script, "<file> execute the given script file" },
-	{ "history", func_history, "List command line history" },
+
+	{ NULL, NULL, "Scripting"},
+	{ "save_config", func_save, "<file> save current configuration to the given file" },
+	{ "script", func_script, "<file> execute the file" },
+
+	{ NULL, NULL, "Verbosity"},
 	{ "verbose", func_verbose, "[on|off|] Be verbose" },
 	{ "trace", func_trace, "[on|off|] Trace every commands" },
+
+	{ NULL, NULL, "Miscs"},
+	{ "#", NULL, "Comment, ignored line" },
 	{ "?", func_qmark, "List available commands" },
+	{ "history", func_history, "List command line history" },
 	{ "Quit", func_quit, "See you" },
-	{ NULL }
+	{ NULL, NULL, NULL }
 };
 
 static void func_qmark(const char *){
 	puts("List of known commands\n"
-		 "----------------------");
+		 "======================");
 
-	for(struct _commands *c = Commands; c->name; ++c)
-		printf("'%s' : %s\n", c->name, c->help);
+	for(struct _commands *c = Commands; c->help; ++c){
+		if(c->name)
+			printf("'%s' : %s\n", c->name, c->help);
+		else {
+			printf("\n%s\n", c->help);
+			for(const char *p = c->help; *p; ++p)
+				putchar('-');
+			putchar('\n');
+		}
+	}
 }
 
 static void exec(const char *cmd, const char *arg){
 	if(trace && *cmd != '#')
 		printf("> %s\n", cmd);
 
-	for(struct _commands *c = Commands; c->name; ++c){
-		if(!strcmp(cmd, c->name)){
+	for(struct _commands *c = Commands; c->help; ++c){
+		if(c->name && !strcmp(cmd, c->name)){
 			if(c->func)
 				c->func(arg);
 			return;
@@ -304,17 +301,19 @@ char *command_generator(const char *text, int state) {
     static int list_index, len;
     const char *name;
 
-    if (!state) {
+    if(!state){
         list_index = 0;
         len = strlen(text);
     }
 
     // Iterate through the command_table for names
-    while((name = Commands[list_index].name)){
+	while(Commands[list_index].help){
         ++list_index;
-        if(!strncmp(name, text, len))
-            return (strdup(name));
-    }
+    	if((name = Commands[list_index].name)){
+	        if(!strncmp(name, text, len))
+    	        return(strdup(name));
+	    }
+	}
 
     return ((char *)NULL);
 }
@@ -401,6 +400,17 @@ int main(int ac, char **av){
 		}
 	}
 	
+		/* libCURL's */
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+	atexit(curl_cleanup);
+	if(!(curl = curl_easy_init())){
+		fputs("*F* curl_easy_init() failed.\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);	/* Don't verify SSL */
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
 		/* Command line handling */
 	rl_attempted_completion_function = command_completion;
 	for(;;){

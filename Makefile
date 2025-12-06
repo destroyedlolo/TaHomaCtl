@@ -6,7 +6,10 @@ gotoall: all
 
 #The compiler (may be customized for compiler's options).
 cc=cc -Wall -pedantic -O2
-opts=-lreadline -lhistory $(shell pkg-config --cflags --libs avahi-client)
+opts=-lreadline -lhistory $(shell pkg-config --cflags --libs avahi-client libcurl)
+
+APIrequest.o : APIrequest.c TaHomaCtl.h Makefile 
+	$(cc) -c -o APIrequest.o APIrequest.c $(opts) 
 
 AvahiScaning.o : AvahiScaning.c TaHomaCtl.h Makefile 
 	$(cc) -c -o AvahiScaning.o AvahiScaning.c $(opts) 
@@ -14,7 +17,8 @@ AvahiScaning.o : AvahiScaning.c TaHomaCtl.h Makefile
 TaHomaCtl.o : TaHomaCtl.c TaHomaCtl.h Makefile 
 	$(cc) -c -o TaHomaCtl.o TaHomaCtl.c $(opts) 
 
-TaHomaCtl : TaHomaCtl.o AvahiScaning.o Makefile 
-	 $(cc) -o TaHomaCtl TaHomaCtl.o AvahiScaning.o $(opts) 
+TaHomaCtl : TaHomaCtl.o AvahiScaning.o APIrequest.o Makefile 
+	 $(cc) -o TaHomaCtl TaHomaCtl.o AvahiScaning.o APIrequest.o \
+  $(opts) 
 
 all: TaHomaCtl 
