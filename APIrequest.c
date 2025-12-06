@@ -8,9 +8,12 @@
 #include <string.h>
 
 CURL *curl = NULL;
+static struct curl_slist *global_resolve_list = NULL;
 
 void curl_cleanup(void){
-	curl_easy_cleanup(curl);	/* internally protected against NULL pointer */
+		/* internally protected against NULL pointer */
+	curl_slist_free_all(global_resolve_list);
+	curl_easy_cleanup(curl);	
 	curl_global_cleanup();
 }
 
@@ -18,6 +21,7 @@ void buildURL(void){
 	if(!tahoma || !ip || !port || !token)	/* Some information are missing */
 		return;
 
+		/* Build target base URL */
 	if(url){
 		free(url);
 		url = NULL;
@@ -33,6 +37,24 @@ void buildURL(void){
 	sprintf(url, "https://%s:%u/enduser-mobile-web/1/enduserAPI/", tahoma, port);
 	if(debug)
 		printf("*D* url: '%s'\n", url);
+
+		/* Build DNS overwriting */
+	if(global_resolve_list){
+		curl_slist_free_all(global_resolve_list);
+		global_resolve_list = NULL;
+	}
+
+	char resolve_entry[strlen(tahoma) + strlen(ip) + 3]; /* host:port:ip */
+	sprintf(resolve_entry, "%s:%u:%s", tahoma, port, ip);
+	if(debug)
+		printf("*D* Resolution: '%s'\n", resolve_entry);
+
+	if(!(global_resolve_list = curl_slist_append(NULL, resolve_entry))){
+		fputs("*E* Failed to force DNS resolution", stderr);
+		return;
+	}
+
+	curl_easy_setopt(curl, CURLOPT_RESOLVE, global_resolve_list);
 }
 
 
