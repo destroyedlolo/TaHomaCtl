@@ -3,13 +3,18 @@
 #include <string.h>
 #include <stdlib.h> 
 
-// Variables globales modifiables (non-const)
+// Variables globales modifiables pour la résolution forcée
 char HOST_NAME[] = "toto.local";
 int PORT = 8442;
 char IP_ADDRESS[] = "192.168.0.25";
 
+// NOUVELLE VARIABLE GLOBALE MODIFIABLE POUR L'AUTORISATION
+char AUTH_TOKEN[] = "initial_secret_bearer_token_12345"; 
+
 // Pointeur global pour la liste de résolution, nécessaire pour la libérer proprement
 struct curl_slist *global_resolve_list = NULL;
+// NOUVEAU POINTEUR GLOBAL POUR LES EN-TETES HTTP
+struct curl_slist *global_headers = NULL; 
 
 // Define a structure to hold captured data (used for both body and headers)
 struct MemoryData {
@@ -19,9 +24,9 @@ struct MemoryData {
 
 // Déclarations des fonctions
 int setup_forced_resolution(CURL *curl_handle);
+int setup_bearer_authorization(CURL *curl_handle); // NOUVELLE FONCTION
 int perform_request(CURL *curl_handle, const char *url);
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
-
 
 // ----------------------------------------------------------------------------
 // General Callback function (unchanged)
@@ -46,47 +51,85 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 }
 
 // ----------------------------------------------------------------------------
-// Fonction 1 : Initialisation de la résolution forcée
-// Cette fonction peut être appelée à tout moment pour changer la résolution.
+// Fonction pour configurer la résolution forcée (inchangée)
 // ----------------------------------------------------------------------------
 int setup_forced_resolution(CURL *curl_handle) {
     char resolve_entry[256]; 
 
-    // 1. Libérer l'ancienne liste si elle existe
     if (global_resolve_list != NULL) {
         curl_slist_free_all(global_resolve_list); 
         global_resolve_list = NULL;
     }
     
-    // 2. Créer la nouvelle entrée de résolution
     if (snprintf(resolve_entry, sizeof(resolve_entry), "%s:%d:%s", 
                  HOST_NAME, PORT, IP_ADDRESS) >= sizeof(resolve_entry)) {
         fprintf(stderr, "Error: Resolve string is too long.\n");
         return 1;
     }
     
-    // 3. Créer la nouvelle liste et l'assigner au pointeur global
     global_resolve_list = curl_slist_append(NULL, resolve_entry);
     if (global_resolve_list == NULL) {
         fprintf(stderr, "Error: curl_slist_append failed.\n");
         return 1;
     }
 
-    // 4. Appliquer la nouvelle résolution au handle CURL
     curl_easy_setopt(curl_handle, CURLOPT_RESOLVE, global_resolve_list);
     printf("\n[CONFIG] Nouvelle résolution forcée configurée pour %s: %s\n", HOST_NAME, IP_ADDRESS);
 
     return 0;
 }
 
+// ----------------------------------------------------------------------------
+// NOUVELLE FONCTION : Configuration de l'entête Authorization: Bearer
+// ----------------------------------------------------------------------------
+int setup_bearer_authorization(CURL *curl_handle) {
+    char auth_header[512]; 
+    
+    // 1. Libérer l'ancienne liste d'entêtes si elle existe
+    if (global_headers != NULL) {
+        curl_slist_free_all(global_headers); 
+        global_headers = NULL;
+    }
+
+    // 2. Créer l'entête au format "Authorization: Bearer <token>"
+    if (snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", 
+                 AUTH_TOKEN) >= sizeof(auth_header)) {
+        fprintf(stderr, "Error: Authorization string is too long.\n");
+        return 1;
+    }
+    
+    // 3. Créer la nouvelle liste d'entêtes
+    global_headers = curl_slist_append(NULL, auth_header);
+    if (global_headers == NULL) {
+        fprintf(stderr, "Error: curl_slist_append failed for headers.\n");
+        return 1;
+    }
+    
+    // 4. Appliquer les entêtes au handle CURL
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, global_headers);
+    printf("[CONFIG] Nouvelle entête Authorization: Bearer appliquée (Token: %s)\n", AUTH_TOKEN);
+
+    return 0;
+}
 
 // ----------------------------------------------------------------------------
-// Fonction 2 : Exécution de la requête et affichage (unchanged)
+// Fonction pour exécuter la requête (mise à jour pour inclure les headers)
 // ----------------------------------------------------------------------------
 int perform_request(CURL *curl_handle, const char *url) {
     CURLcode res;
     long http_code = 0;
+    int result = 0;
     
+    // --- Étape Clé 1 : Reconfigurer l'autorisation si nécessaire ---
+    result |= setup_bearer_authorization(curl_handle);
+
+    if (result != 0) {
+        fprintf(stderr, "Setup failed, aborting request.\n");
+        return 1;
+    }
+
+    // ... (Reste de la fonction inchangé pour la gestion de la mémoire et l'exécution)
+
     struct MemoryData body_chunk;
     struct MemoryData header_chunk;
     
@@ -100,10 +143,7 @@ int perform_request(CURL *curl_handle, const char *url) {
         return 1;
     }
     
-    // Configurer l'URL pour la requête actuelle
     curl_easy_setopt(curl_handle, CURLOPT_URL, url);
-
-    // Configurer les callbacks pour capturer la réponse
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&body_chunk);
     curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, WriteMemoryCallback);
@@ -111,13 +151,12 @@ int perform_request(CURL *curl_handle, const char *url) {
 
     printf("  Requesting URL: %s\n", url);
 
-    // Exécuter la requête
     res = curl_easy_perform(curl_handle);
 
     // Vérifier les erreurs et afficher les résultats
     if (res != CURLE_OK) {
         fprintf(stderr, "  curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        res = 1; 
+        result = 1; 
     } else {
         curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
         
@@ -138,28 +177,25 @@ int perform_request(CURL *curl_handle, const char *url) {
         } else {
             printf("  (No response body received)\n");
         }
-        res = 0; 
+        result = 0; 
     }
 
-    // Nettoyage de la mémoire de la réponse
     free(body_chunk.memory); 
     free(header_chunk.memory);
 
-    return res;
+    return result;
 }
 
 // ----------------------------------------------------------------------------
-// Fonction 3 : Main (Initialisation de libcurl et démonstration)
+// Fonction Main (Démonstration de la modification du Token)
 // ----------------------------------------------------------------------------
 int main(void) {
     CURL *curl;
     int global_result = 0;
 
-    // 1. libcurl global initialization (dans le main comme demandé)
     printf("--- 1. Initialisation globale de libcurl ---\n");
     curl_global_init(CURL_GLOBAL_DEFAULT);
     
-    // 2. Créer le easy handle
     curl = curl_easy_init();
 
     if (!curl) {
@@ -168,38 +204,40 @@ int main(void) {
         return 1;
     }
 
-    // --- Options Générales (appliquées une seule fois) ---
-    // Désactiver SSL verification pour le test local
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
     // --- Scénario 1 : Configuration et Appel Initial ---
     printf("\n--- SCÉNARIO 1 : Configuration initiale ---\n");
     global_result |= setup_forced_resolution(curl); 
-
+    // Le token Bearer initial est utilisé ici
+    
     printf("\n--- Execution 1: Call to /endpoint ---\n");
     global_result |= perform_request(curl, "https://toto.local:8442/endpoint");
     printf("----------------------------------------\n");
 
-    // --- Scénario 2 : Modification des valeurs et nouvel appel ---
-    printf("\n--- SCÉNARIO 2 : Modification de l'IP et du port ---\n");
+    // --- Scénario 2 : Modification des valeurs (IP et Token) et nouvel appel ---
+    printf("\n--- SCÉNARIO 2 : Modification de l'IP et du TOKEN ---\n");
     
     // Modification des variables globales
     strcpy(IP_ADDRESS, "172.16.0.100"); // Nouvelle IP
     PORT = 9443;                       // Nouveau port
+    // MISE À JOUR DU TOKEN D'AUTORISATION
+    strcpy(AUTH_TOKEN, "new_secure_token_for_request_2_xyz"); 
     
     // Réinitialisation de la résolution forcée avec les nouvelles valeurs
     global_result |= setup_forced_resolution(curl); 
 
     printf("\n--- Execution 2: Call to /another_endpoint ---\n");
-    // L'URL utilisée est la même, mais curl résoudra maintenant : toto.local:8442 -> 172.16.0.100:9443
+    // L'appel à perform_request mettra automatiquement à jour l'en-tête Authorization
     global_result |= perform_request(curl, "https://toto.local:8442/another_endpoint");
     printf("--------------------------------------------\n");
     
     // 4. Nettoyage
     
     printf("\n--- 3. Nettoyage ---\n");
-    curl_slist_free_all(global_resolve_list); // Libérer la dernière resolve_list
+    curl_slist_free_all(global_resolve_list); 
+    curl_slist_free_all(global_headers);       // NOUVEAU NETTOYAGE
     curl_easy_cleanup(curl);           
     curl_global_cleanup();             
     
