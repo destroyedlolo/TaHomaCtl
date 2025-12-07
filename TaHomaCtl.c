@@ -19,7 +19,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.1"
+#define VERSION "0.2"
 
 	/* **
 	 * Configuration
@@ -210,7 +210,7 @@ struct _commands {
 	{ "TaHoma_host", func_THost, "[name] set or display TaHoma's host" },
 	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address" },
 	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number" },
-	{ "token", func_token, "[value] indicate application token" },
+	{ "TaHoma_token", func_token, "[value] indicate application token" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
 
