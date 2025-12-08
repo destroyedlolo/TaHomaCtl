@@ -73,7 +73,7 @@ void buildURL(void){
 	if(debug)
 		printf("*D* Auth header : '%s'\n", auth_header);
 	
-	if(!(global_headers = curl_slist_append(NULL, token))){
+	if(!(global_headers = curl_slist_append(NULL, auth_header))){
 		fputs("*E* Failed to set header", stderr);
 		return;
 	}
@@ -87,7 +87,14 @@ void buildURL(void){
 	global_headers = curl_slist_append(global_headers, "Content-Type: application/json");
 	global_headers = curl_slist_append(global_headers, host_header);
 
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, global_headers);
+#if 0
+	for(struct curl_slist *c = global_headers; c; c = c->next)
+		printf("-> '%s'\n", c->data);
+#endif
+
+	int res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, global_headers);
+	if(res != CURLE_OK)
+		fprintf(stderr, "*E* Calling error : %s\n", curl_easy_strerror(res));
 }
 
 void callAPI(const char *api){
@@ -97,10 +104,10 @@ void callAPI(const char *api){
 
 	if(debug)
 		printf("*D* calling '%s'\n", full_url);
+	curl_easy_setopt(curl, CURLOPT_URL, full_url);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_perform(curl);
-
+	if(debug)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	int res = curl_easy_perform(curl);
 	if(res != CURLE_OK)
 		fprintf(stderr, "*E* Calling error : %s\n", curl_easy_strerror(res));
