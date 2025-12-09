@@ -89,11 +89,11 @@ void buildURL(void){
 
 	if(debug)
 		for(struct curl_slist *c = global_headers; c; c = c->next)
-			printf("-> '%s'\n", c->data);
+			printf("*D* Header -> '%s'\n", c->data);
 
 	int res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, global_headers);
 	if(res != CURLE_OK)
-		fprintf(stderr, "*E* Calling error : %s\n", curl_easy_strerror(res));
+		fprintf(stderr, "*E* curl_easy_setopt() : %s\n", curl_easy_strerror(res));
 }
 
 void callAPI(const char *api){
