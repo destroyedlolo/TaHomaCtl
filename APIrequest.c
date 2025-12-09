@@ -87,10 +87,9 @@ void buildURL(void){
 	global_headers = curl_slist_append(global_headers, "Content-Type: application/json");
 	global_headers = curl_slist_append(global_headers, host_header);
 
-#if 0
-	for(struct curl_slist *c = global_headers; c; c = c->next)
-		printf("-> '%s'\n", c->data);
-#endif
+	if(debug)
+		for(struct curl_slist *c = global_headers; c; c = c->next)
+			printf("-> '%s'\n", c->data);
 
 	int res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, global_headers);
 	if(res != CURLE_OK)

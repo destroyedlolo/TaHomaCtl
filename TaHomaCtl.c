@@ -410,7 +410,7 @@ int main(int ac, char **av){
 		else {
 			char t[strlen(pw->pw_dir) + 13];	/* "/.tahomactrl" */
 			sprintf(t, "%s/.tahomactrl", pw->pw_dir);
-			execscript(t, false);
+			execscript(t, true);
 		}
 	}
 	
