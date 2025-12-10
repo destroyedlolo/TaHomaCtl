@@ -11,7 +11,47 @@ CURL *curl = NULL;
 static struct curl_slist *global_resolve_list = NULL;	/* forced resolver */
 static struct curl_slist *global_headers = NULL;				/* Headers */
 
+	/* Response handling */
+struct ResponseBuffer {
+    char *memory;
+    size_t size;
+} response_data = { NULL, 0 };
+
+static void cleanup_response_buffer(void) {
+	if(response_data.memory){
+		free(response_data.memory);
+		response_data.memory = NULL;
+		response_data.size = 0;
+	}
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp){
+	size_t realsize = size * nmemb;
+	struct ResponseBuffer *mem = (struct ResponseBuffer *)userp;
+	char *p;
+
+	if(!mem->memory)
+		p = malloc(realsize + 1);
+	else
+		p = realloc(mem->memory, mem->size + realsize + 1);
+
+	if(!p){
+		fputs("*E* Out of memory\n", stderr);
+		return 0;	/* Signal error to libcurl */
+	}
+
+	mem->memory = p;
+	memcpy(&(mem->memory[mem->size]), contents, realsize);	/* Append new data */
+	mem->size += realsize;
+	mem->memory[mem->size] = 0;
+
+	return realsize;
+}
+
+	/* API handling */
 void curl_cleanup(void){
+	cleanup_response_buffer();
+
 		/* internally protected against NULL pointer */
 	curl_easy_cleanup(curl);	
 	curl_slist_free_all(global_resolve_list);
@@ -104,6 +144,10 @@ void callAPI(const char *api){
 	char full_url[url_len + strlen(api) + 1];
 	strcpy(full_url, url);
 	strcpy(full_url + url_len, api);
+
+	cleanup_response_buffer();
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_data);
 
 	if(debug)
 		printf("*D* calling '%s'\n", full_url);
