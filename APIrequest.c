@@ -111,7 +111,12 @@ void callAPI(const char *api){
 
 	if(debug)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	spent(false);
 	int res = curl_easy_perform(curl);
+puts("");
+	spent(true);
+
 	if(res != CURLE_OK)
 		fprintf(stderr, "*E* Calling error : %s\n", curl_easy_strerror(res));
 	else if(verbose || debug){

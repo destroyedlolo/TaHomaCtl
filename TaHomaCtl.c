@@ -11,9 +11,7 @@
 #include <unistd.h>	/* getopt() */
 #include <stdio.h>
 #include <stdlib.h>
-#if 0
-#include <string.h>
-#endif
+#include <time.h>
 #include <assert.h>
 #include <pwd.h>
 #include <readline/readline.h>
@@ -58,6 +56,25 @@ void clean(char **obj){
 	if(*obj){
 		free(*obj);
 		*obj = NULL;
+	}
+}
+
+static unsigned long timespec_to_ms(const struct timespec *ts){
+	return((unsigned long)ts->tv_sec * 1000) + (ts->tv_nsec / 1000000L);
+}
+
+void spent(bool ending){
+		/* Measure time spent b/w starting (false) and ending (true) */
+	static struct timespec beg, end;
+
+	if(clock_gettime(CLOCK_MONOTONIC, ending ? &end : &beg) == -1){
+		perror("clock_gettime')");
+		return;
+	}
+
+	if((debug || verbose) && ending){
+		unsigned long d = timespec_to_ms(&end) - timespec_to_ms(&beg);
+		printf("*D* Time spent : %0.3f\n", (double)d / 1000.0);
 	}
 }
 

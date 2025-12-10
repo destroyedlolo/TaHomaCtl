@@ -38,6 +38,7 @@ extern void callAPI(const char *);
 
 	/* Utilities */
 extern const char *FreeAndSet(char **storage, const char *val);
+extern void spent(bool);	/* Caution, not reentrant */
 
 	/* Sharing functions */
 extern void clean(char **);		// Clean a configuration reference
