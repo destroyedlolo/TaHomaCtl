@@ -30,6 +30,14 @@ extern bool debug;
 extern bool trace;
 extern bool verbose;
 
+	/* Utilities */
+extern const char *FreeAndSet(char **storage, const char *val);
+extern void spent(bool);	/* Caution, not reentrant */
+
+	/* Configuration related */
+extern void clean(char **);		// Clean a configuration reference
+extern void func_scan(const char *);
+
 	/* Response handling */
 struct ResponseBuffer {
     char *memory;
@@ -44,12 +52,7 @@ extern void curl_cleanup(void);
 extern void buildURL(void);
 extern void callAPI(const char *, struct ResponseBuffer *);
 
-	/* Utilities */
-extern const char *FreeAndSet(char **storage, const char *val);
-extern void spent(bool);	/* Caution, not reentrant */
-
-	/* Sharing functions */
-extern void clean(char **);		// Clean a configuration reference
-extern void func_scan(const char *);
+	/* Response processing */
+void func_Tgw(const char *);
 
 #endif

@@ -218,17 +218,6 @@ static void func_quit(const char *){
 	exit(EXIT_SUCCESS);
 }
 
-static void func_Tgw(const char *){
-	struct ResponseBuffer buff = {NULL};
-
-	callAPI("setup/gateways", &buff);
-
-	if(debug)
-		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
-
-	freeResponse(&buff);
-}
-
 struct _commands {
 	const char *name;			// Command's name
 	void(*func)(const char *);	// executor
