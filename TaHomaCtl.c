@@ -219,7 +219,14 @@ static void func_quit(const char *){
 }
 
 static void func_Tgw(const char *){
-	callAPI("setup/gateways");
+	struct ResponseBuffer buff = {NULL};
+
+	callAPI("setup/gateways", &buff);
+
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+	freeResponse(&buff);
 }
 
 struct _commands {

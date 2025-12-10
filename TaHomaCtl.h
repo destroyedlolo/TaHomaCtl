@@ -30,11 +30,19 @@ extern bool debug;
 extern bool trace;
 extern bool verbose;
 
+	/* Response handling */
+struct ResponseBuffer {
+    char *memory;
+    size_t size;
+};
+
+void freeResponse(struct ResponseBuffer *);
+
 	/* API calling */
 extern CURL *curl;
 extern void curl_cleanup(void);
 extern void buildURL(void);
-extern void callAPI(const char *);
+extern void callAPI(const char *, struct ResponseBuffer *);
 
 	/* Utilities */
 extern const char *FreeAndSet(char **storage, const char *val);

@@ -12,16 +12,11 @@ static struct curl_slist *global_resolve_list = NULL;	/* forced resolver */
 static struct curl_slist *global_headers = NULL;				/* Headers */
 
 	/* Response handling */
-struct ResponseBuffer {
-    char *memory;
-    size_t size;
-} response_data = { NULL, 0 };
-
-static void cleanup_response_buffer(void) {
-	if(response_data.memory){
-		free(response_data.memory);
-		response_data.memory = NULL;
-		response_data.size = 0;
+void freeResponse(struct ResponseBuffer *buff){
+	if(buff->memory){
+		free(buff->memory);
+		buff->memory = NULL;
+		buff->size = 0;
 	}
 }
 
@@ -50,8 +45,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 
 	/* API handling */
 void curl_cleanup(void){
-	cleanup_response_buffer();
-
 		/* internally protected against NULL pointer */
 	curl_easy_cleanup(curl);	
 	curl_slist_free_all(global_resolve_list);
@@ -135,7 +128,7 @@ void buildURL(void){
 		fprintf(stderr, "*E* curl_easy_setopt(%p) : %s\n", curl, curl_easy_strerror(res));
 }
 
-void callAPI(const char *api){
+void callAPI(const char *api, struct ResponseBuffer *buff){
 	if(!tahoma || !ip || !port || !token){
 		fputs("*E* missing connection information to run the request.\n", stderr);
 		return;
@@ -145,9 +138,9 @@ void callAPI(const char *api){
 	strcpy(full_url, url);
 	strcpy(full_url + url_len, api);
 
-	cleanup_response_buffer();
+	freeResponse(buff);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_data);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)buff);
 
 	if(debug)
 		printf("*D* calling '%s'\n", full_url);
@@ -158,7 +151,6 @@ void callAPI(const char *api){
 
 	spent(false);
 	int res = curl_easy_perform(curl);
-puts("");
 	spent(true);
 
 	if(res != CURLE_OK)
