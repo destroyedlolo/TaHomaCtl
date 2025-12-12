@@ -8,8 +8,8 @@ gotoall: all
 cc=cc -Wall -pedantic -O2
 opts=-lreadline -lhistory $(shell pkg-config --cflags --libs avahi-client libcurl json-c) -lrt
 
-APIProcess.o : APIProcess.c TaHomaCtl.h Makefile 
-	$(cc) -c -o APIProcess.o APIProcess.c $(opts) 
+APIprocess.o : APIprocess.c TaHomaCtl.h Makefile 
+	$(cc) -c -o APIprocess.o APIprocess.c $(opts) 
 
 APIrequest.o : APIrequest.c TaHomaCtl.h Makefile 
 	$(cc) -c -o APIrequest.o APIrequest.c $(opts) 
@@ -20,9 +20,9 @@ AvahiScaning.o : AvahiScaning.c TaHomaCtl.h Makefile
 TaHomaCtl.o : TaHomaCtl.c TaHomaCtl.h Makefile 
 	$(cc) -c -o TaHomaCtl.o TaHomaCtl.c $(opts) 
 
-TaHomaCtl : TaHomaCtl.o AvahiScaning.o APIrequest.o APIProcess.o \
+TaHomaCtl : TaHomaCtl.o AvahiScaning.o APIrequest.o APIprocess.o \
   Makefile 
 	 $(cc) -o TaHomaCtl TaHomaCtl.o AvahiScaning.o APIrequest.o \
-  APIProcess.o $(opts) 
+  APIprocess.o $(opts) 
 
 all: TaHomaCtl 
