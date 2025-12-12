@@ -5,6 +5,8 @@
 
 #include <json-c/json.h>
 
+#define OBJPATH(...) (const char*[]){ __VA_ARGS__ }
+
 const char *getObjString(struct json_object *parent, const char *path[]){
 	struct json_object *obj = parent;
 
@@ -49,9 +51,12 @@ void func_Tgw(const char *){
 
 		if(json_object_is_type(parsed_json, json_type_array)){	/* 1st object is an array */
 			struct json_object *first_object = json_object_array_get_idx(parsed_json, 0);
-			if(first_object)
-				printf("gatewayId : %s\n", affString(getObjString(first_object, (const char *[]){"gatewayId", NULL})) );
-			else
+			if(first_object){
+				printf("gatewayId : %s\n", affString(getObjString(first_object, OBJPATH( "gatewayId", NULL ) )));
+				printf("Connected : %s\n", affString(getObjString(first_object, OBJPATH( "connectivity", "status", NULL ) )));
+				printf("protocolVersion : %s\n", affString(getObjString(first_object, OBJPATH( "connectivity", "protocolVersion", NULL ) )));
+
+			} else
 				fputs("*E* Empty or unexpected object returned", stderr);
 		} else
 			fputs("*E* Returned object is not an array", stderr);

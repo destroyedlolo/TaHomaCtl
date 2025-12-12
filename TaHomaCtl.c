@@ -240,7 +240,7 @@ struct _commands {
 	{ "trace", func_trace, "[on|off|] Trace every commands" },
 
 	{ NULL, NULL, "Interacting"},
-	{ "tGateway", func_Tgw, "Query your gateway own configuration" },
+	{ "Gateway", func_Tgw, "Query your gateway own configuration" },
 
 	{ NULL, NULL, "Miscs"},
 	{ "#", NULL, "Comment, ignored line" },
