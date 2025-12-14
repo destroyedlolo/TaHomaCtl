@@ -146,6 +146,9 @@ void callAPI(const char *api, struct ResponseBuffer *buff){
 		printf("*D* calling '%s'\n", full_url);
 	curl_easy_setopt(curl, CURLOPT_URL, full_url);
 
+	if(timeout)
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+
 	if(debug)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
@@ -159,5 +162,12 @@ void callAPI(const char *api, struct ResponseBuffer *buff){
 		long http_code = 0;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 		printf("*I* HTTP return code : %ld\n", http_code);
+
+		if(debug){
+			double t;
+			curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &t);
+
+			printf("*D* Connection : %.2fs\n", t);
+		}
 	}
 }

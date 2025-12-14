@@ -31,6 +31,7 @@ bool unsafe = false;
 
 char *url = NULL;
 size_t url_len;
+long timeout = 0;
 bool verbose = false;
 bool trace = false;
 bool debug = false;
@@ -171,6 +172,8 @@ static void func_status(const char *){
 		token ? "set": "unset",
 		unsafe ? "not checked (unsafe)" : "Enforced"
 	);
+	if(timeout)
+		printf("\tTimeout : %lds\n", timeout);
 }
 
 static void func_history(const char *arg){
@@ -214,6 +217,16 @@ static void func_trace(const char *arg){
 		puts(trace ? "Traces enabled" : "Traces disabled");
 }
 
+static void func_timeout(const char *arg){
+	if(arg){
+		timeout = atol(arg);
+
+		if(debug || verbose)
+			printf("*I* Timeout : %lds\n", timeout);
+	} else
+		fputs("timeout is execting the number of seconds to wait.\n", stderr);
+}
+
 static void func_quit(const char *){
 	exit(EXIT_SUCCESS);
 }
@@ -228,6 +241,7 @@ struct _commands {
 	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address" },
 	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number" },
 	{ "TaHoma_token", func_token, "[value] indicate application token" },
+	{ "timeout", func_timeout, "[value] specify API call timeout (seconds)" },
 	{ "scan", func_scan, "Look for Tahoma's ZeroConf advertising" },
 	{ "status", func_status, "Display current connection informations" },
 
@@ -241,6 +255,7 @@ struct _commands {
 
 	{ NULL, NULL, "Interacting"},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration" },
+	{ "Devices", func_Devs, "List attached devices" },
 
 	{ NULL, NULL, "Miscs"},
 	{ "#", NULL, "Comment, ignored line" },

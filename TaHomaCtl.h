@@ -23,6 +23,7 @@ extern bool unsafe;		/* Don't verify SSL chaine */
 
 extern char *url;	/* base API url */
 extern size_t url_len;	/* URL's length */
+extern long timeout;	/* API calling timeout */
 
 extern AvahiProtocol avahiIP;
 
@@ -54,5 +55,6 @@ extern void callAPI(const char *, struct ResponseBuffer *);
 
 	/* Response processing */
 void func_Tgw(const char *);
+void func_Devs(const char *);
 
 #endif

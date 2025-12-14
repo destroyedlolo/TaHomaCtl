@@ -41,7 +41,6 @@ void func_Tgw(const char *){
 	struct ResponseBuffer buff = {NULL};
 
 	callAPI("setup/gateways", &buff);
-
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
@@ -67,3 +66,45 @@ void func_Tgw(const char *){
 	freeResponse(&buff);
 }
 
+void func_Devs(const char *){
+	struct ResponseBuffer buff = {NULL};
+
+	callAPI("setup/devices", &buff);
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+		/* Process result */
+	if(buff.memory){
+		struct json_object *res= json_tokener_parse(buff.memory);
+
+		if(json_object_is_type(res, json_type_array)){	/* 1st object is an array */
+			size_t nbr = json_object_array_length(res);
+			if(debug || verbose)
+				printf("*I* %ld devices\n", nbr);
+
+			for(size_t idx=0; idx < nbr; ++idx){
+				struct json_object *obj = json_object_array_get_idx(res, idx);
+
+				if(obj){
+					printf("Label : %s [%s]\n", 
+						affString(getObjString(obj, OBJPATH( "label", NULL ) )),
+						affString(getObjString(obj, OBJPATH( "controllableName", NULL ) ))
+					);
+
+					printf("\tURL : %s\n", 
+						affString(getObjString(obj, OBJPATH( "deviceURL", NULL ) ))
+					);
+
+					printf("\tType : %s\n", 
+						affString(getObjString(obj, OBJPATH( "type", NULL ) ))
+					);
+				} else
+					fprintf(stderr, "*E* Can't get %ld\n", idx);
+			}
+		} else
+			fputs("*E* Returned object is not an array", stderr);
+
+		json_object_put(res);
+	}
+	freeResponse(&buff);
+}
