@@ -160,7 +160,7 @@ static void func_save(const char *arg){
 }
 
 static void func_status(const char *){
-	printf("*I* Current status :\n"
+	printf("*I* Connection :\n"
 		"\tTahoma's host : %s\n"
 		"\tTahoma's IP : %s\n"
 		"\tTahoma's port : %u\n"
@@ -174,6 +174,10 @@ static void func_status(const char *){
 	);
 	if(timeout)
 		printf("\tTimeout : %lds\n", timeout);
+
+	puts("*I* Stored devices :");
+	for(struct Device *dev = devices_list; dev; dev = dev->next)
+		printf("\t%s : %s\n", dev->label, dev->url);
 }
 
 static void func_history(const char *arg){
@@ -255,7 +259,7 @@ struct _commands {
 
 	{ NULL, NULL, "Interacting"},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration" },
-	{ "Devices", func_Devs, "List attached devices" },
+	{ "Devices", func_Devs, "Query and store attached devices" },
 
 	{ NULL, NULL, "Miscs"},
 	{ "#", NULL, "Comment, ignored line" },

@@ -57,4 +57,11 @@ extern void callAPI(const char *, struct ResponseBuffer *);
 void func_Tgw(const char *);
 void func_Devs(const char *);
 
+	/* Devices' */
+extern struct Device {
+	struct Device *next;
+
+	const char *label;
+	const char *url;
+} *devices_list;
 #endif

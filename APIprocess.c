@@ -3,16 +3,20 @@
 
 #include "TaHomaCtl.h"
 
+#include <assert.h>
+#include <string.h>
 #include <json-c/json.h>
 
 #define OBJPATH(...) (const char*[]){ __VA_ARGS__ }
 
-struct json_object *getObj(struct json_object *parent, const char *path[]){
+static struct json_object *getObj(struct json_object *parent, const char *path[]){
 	struct json_object *obj = parent;
 
 	for(int i=0; path[i]; ++i){
+#if 0	/* Remove uneeded noise */
 		if(debug)
 			printf("*D* %d: '%s'\n", i, path[i]);
+#endif
 
 		if(!obj){
 			if(debug)
@@ -25,7 +29,7 @@ struct json_object *getObj(struct json_object *parent, const char *path[]){
 	return obj;
 }
 
-const char *getObjString(struct json_object *parent, const char *path[]){
+static const char *getObjString(struct json_object *parent, const char *path[]){
 	struct json_object *obj = getObj(parent, path);
 	if(!obj)
 		return NULL;
@@ -38,7 +42,7 @@ const char *getObjString(struct json_object *parent, const char *path[]){
 	return NULL;
 }
 
-int getObjInt(struct json_object *parent, const char *path[]){
+static int getObjInt(struct json_object *parent, const char *path[]){
 	struct json_object *obj = getObj(parent, path);
 	if(!obj)
 		return 0;
@@ -51,7 +55,7 @@ int getObjInt(struct json_object *parent, const char *path[]){
 	return 0;
 }
 
-bool getObjBool(struct json_object *parent, const char *path[]){
+static bool getObjBool(struct json_object *parent, const char *path[]){
 	struct json_object *obj = getObj(parent, path);
 	if(!obj)
 		return false;
@@ -70,6 +74,43 @@ static const char *affString(const char *v){
 	else
 		return "Not found";
 }
+
+
+	/*
+	 * Devices
+	 */
+
+struct Device *devices_list = NULL;
+
+void addDevice(struct json_object *obj){
+	const char *t = getObjString(obj, OBJPATH( "definition", "type", NULL ));
+	if(!t || !strcmp(t, "PROTOCOL_GATEWAY"))
+		return;
+	
+	struct Device *dev = malloc(sizeof(struct Device));
+	assert(dev);
+
+		/* feed with the label */
+	t = getObjString(obj, OBJPATH( "label", NULL ));
+	assert(t);
+
+	assert( (dev->label = strdup(t)) );
+	for(char *c = (char *)dev->label; *c; ++c)
+		if(*c == ' ')
+			*c = '_';
+
+		/* and the URL */
+	assert( (t = getObjString(obj, OBJPATH( "deviceURL", NULL ) )) );
+	assert( (dev->url = strdup(t)) );
+
+		/* Add the new device in the list */
+	dev->next = devices_list;
+	devices_list = dev;
+}
+
+	/*
+	 * User commands
+	 */
 
 void func_Tgw(const char *){
 	struct ResponseBuffer buff = {NULL};
@@ -100,6 +141,32 @@ void func_Tgw(const char *){
 	freeResponse(&buff);
 }
 
+static void printDeviceInfo(struct json_object *obj){
+	printf("*I* %s [%s]\n", 
+		affString(getObjString(obj, OBJPATH( "label", NULL ) )),
+		affString(getObjString(obj, OBJPATH( "controllableName", NULL ) ))
+	);
+
+	printf("\tURL : %s\n", 
+		affString(getObjString(obj, OBJPATH( "deviceURL", NULL ) ))
+	);
+
+	printf("\tType : %d, subsystemId : %d\n", 
+		getObjInt(obj, OBJPATH( "type", NULL ) ),
+		getObjInt(obj, OBJPATH( "subsystemId", NULL ) )
+	);
+
+	printf("\t%ssynced, %senabled, %savailable\n",
+		getObjBool(obj, OBJPATH( "synced", NULL ) ) ? "":"Not ",
+		getObjBool(obj, OBJPATH( "enabled", NULL ) ) ? "":"Not ",
+		getObjBool(obj, OBJPATH( "available", NULL ) ) ? "":"Not "
+	);
+
+	printf("\t\tType: %s\n",
+		affString(getObjString(obj, OBJPATH( "definition", "type", NULL ) ))
+	);
+}
+
 void func_Devs(const char *){
 	struct ResponseBuffer buff = {NULL};
 
@@ -120,30 +187,9 @@ void func_Devs(const char *){
 				struct json_object *obj = json_object_array_get_idx(res, idx);
 
 				if(obj){
-					printf("%s [%s]\n", 
-						affString(getObjString(obj, OBJPATH( "label", NULL ) )),
-						affString(getObjString(obj, OBJPATH( "controllableName", NULL ) ))
-					);
-
-					printf("\tURL : %s\n", 
-						affString(getObjString(obj, OBJPATH( "deviceURL", NULL ) ))
-					);
-
-					printf("\tType : %d, subsystemId : %d\n", 
-						getObjInt(obj, OBJPATH( "type", NULL ) ),
-						getObjInt(obj, OBJPATH( "subsystemId", NULL ) )
-					);
-
-					printf("\t%ssynced, %senabled, %savailable\n",
-						getObjBool(obj, OBJPATH( "synced", NULL ) ) ? "":"Not ",
-						getObjBool(obj, OBJPATH( "enabled", NULL ) ) ? "":"Not ",
-						getObjBool(obj, OBJPATH( "available", NULL ) ) ? "":"Not "
-					);
-
-					printf("\t\tType: %s\n",
-						affString(getObjString(obj, OBJPATH( "definition", "type", NULL ) ))
-					);
-						
+					if(debug || verbose)
+						printDeviceInfo(obj);
+					addDevice(obj);
 				} else
 					fprintf(stderr, "*E* Can't get %ld\n", idx);
 			}
