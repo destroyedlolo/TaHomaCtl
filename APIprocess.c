@@ -108,6 +108,19 @@ void addDevice(struct json_object *obj){
 	devices_list = dev;
 }
 
+static void freeDeviceList(void){
+	for(struct Device *dev = devices_list; dev; ){
+		free((void *)dev->label);
+		free((void *)dev->url);
+
+		struct Device *ans = dev;
+		dev = dev->next;
+		free(ans);
+	}
+
+	devices_list = NULL;
+}
+
 	/*
 	 * User commands
 	 */
@@ -179,6 +192,8 @@ void func_Devs(const char *){
 		struct json_object *res= json_tokener_parse(buff.memory);
 
 		if(json_object_is_type(res, json_type_array)){	/* 1st object is an array */
+			freeDeviceList();	/* Remove old list */
+
 			size_t nbr = json_object_array_length(res);
 			if(debug || verbose)
 				printf("*I* %ld devices\n", nbr);
