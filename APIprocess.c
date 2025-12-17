@@ -82,6 +82,23 @@ static const char *affString(const char *v){
 
 struct Device *devices_list = NULL;
 
+static void freeDevice(struct Device *dev){
+	free((void *)dev->label);
+	free((void *)dev->url);
+}
+
+static void freeDeviceList(void){
+	for(struct Device *dev = devices_list; dev; ){
+		freeDevice(dev);
+
+		struct Device *ans = dev;
+		dev = dev->next;
+		free(ans);
+	}
+
+	devices_list = NULL;
+}
+
 void addDevice(struct json_object *obj){
 	const char *t = getObjString(obj, OBJPATH( "definition", "type", NULL ));
 	if(!t || !strcmp(t, "PROTOCOL_GATEWAY"))
@@ -103,22 +120,52 @@ void addDevice(struct json_object *obj){
 	assert( (t = getObjString(obj, OBJPATH( "deviceURL", NULL ) )) );
 	assert( (dev->url = strdup(t)) );
 
+		/* store known commands */
+	dev->commands = NULL;
+
+	struct json_object *lstc = getObj(obj, OBJPATH( "definition", "commands", NULL ));
+	if(!lstc){
+		fprintf(stderr, "*E* [%s] commands field not found.\n", dev->label);
+		freeDevice(dev);
+		free(dev);
+		return;
+	}
+
+	if(!json_object_is_type(lstc, json_type_array)){
+		fprintf(stderr, "*E* [%s] commands field not an array.\n", dev->label);
+		freeDevice(dev);
+		free(dev);
+		return;
+	}
+
+	size_t nbr = json_object_array_length(lstc);
+	if(debug)
+		printf("*I* %ld command(s)\n", nbr);
+
+	for(size_t idx=0; idx < nbr; ++idx){
+		struct json_object *cmd = json_object_array_get_idx(lstc, idx);
+		if(!cmd){
+			fprintf(stderr, "*E* [%s / %ld] Command not found.\n", dev->label, idx);
+			freeDevice(dev);
+			free(dev);
+			return;
+		}
+
+		assert( (t = getObjString(cmd, OBJPATH( "commandName", NULL ) )) );
+
+		struct Command *ncmd = malloc(sizeof(struct Command));
+		assert(ncmd);
+
+		assert( (ncmd->command = strdup(t)) );
+		ncmd->nparams = getObjInt(cmd, OBJPATH( "nparams", NULL ) );
+
+		ncmd->next = dev->commands;
+		dev->commands = ncmd;
+	}
+
 		/* Add the new device in the list */
 	dev->next = devices_list;
 	devices_list = dev;
-}
-
-static void freeDeviceList(void){
-	for(struct Device *dev = devices_list; dev; ){
-		free((void *)dev->label);
-		free((void *)dev->url);
-
-		struct Device *ans = dev;
-		dev = dev->next;
-		free(ans);
-	}
-
-	devices_list = NULL;
 }
 
 	/*

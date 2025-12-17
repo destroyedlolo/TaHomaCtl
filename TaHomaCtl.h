@@ -58,10 +58,19 @@ void func_Tgw(const char *);
 void func_Devs(const char *);
 
 	/* Devices' */
+struct Command {
+	struct Command *next;
+
+	const char *command;
+	unsigned int nparams;
+};
+
 extern struct Device {
 	struct Device *next;
 
 	const char *label;
 	const char *url;
+
+	struct Command *commands;
 } *devices_list;
 #endif

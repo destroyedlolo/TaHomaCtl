@@ -17,7 +17,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.2"
+#define VERSION "0.3"
 
 	/* **
 	 * Configuration
@@ -176,8 +176,11 @@ static void func_status(const char *){
 		printf("\tTimeout : %lds\n", timeout);
 
 	puts("*I* Stored devices :");
-	for(struct Device *dev = devices_list; dev; dev = dev->next)
+	for(struct Device *dev = devices_list; dev; dev = dev->next){
 		printf("\t%s : %s\n", dev->label, dev->url);
+		for(struct Command *cmd = dev->commands; cmd; cmd = cmd->next)
+			printf("\t\t%s (%d %s)\n", cmd->command, cmd->nparams, cmd->nparams > 1 ? "args": "arg");
+	}
 }
 
 static void func_history(const char *arg){
