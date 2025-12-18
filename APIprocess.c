@@ -100,10 +100,14 @@ static void freeDeviceList(void){
 }
 
 static void addDevice(struct json_object *obj){
-	const char *t = getObjString(obj, OBJPATH( "definition", "type", NULL ));
+	const char *t; 
+
+#if 0
+	t = getObjString(obj, OBJPATH( "definition", "type", NULL ));
 	if(!t || !strcmp(t, "PROTOCOL_GATEWAY"))
 		return;
-	
+#endif
+
 	struct Device *dev = malloc(sizeof(struct Device));
 	assert(dev);
 
@@ -290,8 +294,10 @@ void func_States(char *arg){
 	nextArg(arg);	/* Remove potential trailing space */
 
 	struct Device *dev = findDevice(arg);
-	if(!dev)
+	if(!dev){
 		fputs("*E* Device not found.\n", stderr);
+		return;
+	}
 
 	char *enc = curl_easy_escape(curl, dev->url, 0);
 	assert(enc);
@@ -317,8 +323,28 @@ void func_States(char *arg){
 				printf("*I* %ld states\n", nbr);
 			for(size_t idx=0; idx < nbr; ++idx){
 				struct json_object *obj = json_object_array_get_idx(res, idx);
+
+				printf("\t%s : ", affString(getObjString(obj, OBJPATH( "name", NULL ))));
+				int type = getObjInt(obj, OBJPATH( "type", NULL ));
+
+				switch(type){
+				case 1:
+					printf("\"%d\"\n", getObjInt(obj, OBJPATH( "value", NULL ) ));
+					break;
+				case 3:
+					printf("\"%s\"\n", affString(getObjString(obj, OBJPATH( "value", NULL ) )));
+					break;
+				case 11:
+					puts("[Array]");
+					break;
+				default:
+					printf("Unknown type (%d)\n", type);
+				}
 			}
 		} else
 			fputs("*E* Returned object is not an array", stderr);
+
+		json_object_put(res);
 	}
+	freeResponse(&buff);
 }
