@@ -55,6 +55,19 @@ static int getObjInt(struct json_object *parent, const char *path[]){
 	return 0;
 }
 
+static double getObjNumber(struct json_object *parent, const char *path[]){
+	struct json_object *obj = getObj(parent, path);
+	if(!obj)
+		return 0;
+
+	if(json_object_is_type(obj, json_type_double))
+		return json_object_get_double(obj);
+	else if(debug)
+		fputs("*E* Not a double\n", stderr);
+
+	return 0;
+}
+
 static bool getObjBool(struct json_object *parent, const char *path[]){
 	struct json_object *obj = getObj(parent, path);
 	if(!obj)
@@ -328,14 +341,19 @@ void func_States(char *arg){
 				int type = getObjInt(obj, OBJPATH( "type", NULL ));
 
 				switch(type){
-				case 1:
-					printf("\"%d\"\n", getObjInt(obj, OBJPATH( "value", NULL ) ));
+				case 1:	/* Number */
+					printf("\"%lf\"\n", getObjNumber(obj, OBJPATH( "value", NULL ) ));
 					break;
-				case 3:
+				case 3:	/* String */
 					printf("\"%s\"\n", affString(getObjString(obj, OBJPATH( "value", NULL ) )));
 					break;
-				case 11:
+				case 6:	/* Boolean */
+					printf("%s\n", getObjBool(obj, OBJPATH( "value", NULL ) ) ? "true":"false");
+				case 10:
 					puts("[Array]");
+					break;
+				case 11:
+					puts("{Object}");
 					break;
 				default:
 					printf("Unknown type (%d)\n", type);
