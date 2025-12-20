@@ -33,6 +33,7 @@ The solution may be to use the Overkiz's "*end user cloud public API*", but my s
 3rd party libraries (on Debian derivate, you need the development version `-dev`)
 * `libcurl`: For API communication.
 * `libjson-c`: For parsing JSON responses.
+* `readline` : GNU's readline for command line improvement.
 
 You need the TaHoma's developer mode activated : follow [Overkiz's intruction](https://github.com/Somfy-Developer/Somfy-TaHoma-Developer-Mode).
 
@@ -214,5 +215,28 @@ TaHomaCtl > States Deco
 	core:NameState : "Deco"
 ```
 
+> [!IMPORTANT]
+> For the moment, I made tests only with the device I'm having : an **IO OnOff switch**.<br>
+> Consequently, some figures are not handled as not provided by my device (like Arrays or sub Objects).
 
-like [Majordome](https://github.com/destroyedlolo/Majordome).
+## Why TaHomaCtl ?
+
+### Integration in my own automation solution
+
+My own smart home solution is quite efficient and complete ([Marcel](https://github.com/destroyedlolo/Marcel), [Majordome](https://github.com/destroyedlolo/Majordome), ...), no need to replace anything. But I was wondering how I can integrate this nice box to my own ecosystem, as example to steer **IO-homecontrol** devices.
+
+TaHomaCtl was initially made as a Proof of Concept (PoC) before integrating something in Marcel (or as an autonomous daemon).
+
+> [!NOTE]
+> Yes, I'm proudly part of Somfy/Overkiz, but this code doesn't contain any internals : it was built only from publicly available information and my own testing. 
+> No, don't ask me about anything not made public, I'll not reply.
+
+### Vibe coding testing
+
+TaHomaCtl uses some technologies I hadn't coded before, like mDNS advertising. This small project was a good candidate to test AI companions (ChatGPT and Gemini) and vibe coding. AI generated code, sometime corrected, can be found in TestCodes. The result is quite mixed :
+
+- mDNS : the outcome is poor, sometime bad ! ChatGPT stays on its own mistakes (non-existent functions, stupid assumptions, wrong strategies, ...). Then I ask Gemini to correct and got some improvements. But, all in all, the result is heavy, not flexible and doesn't suite my quality standard, by far.
+
+- GNU readline : generated code was better ... but still not functional until manual corrections.
+
+Well, the AI saves me some time to find technical information, replacing google researches. But it is far far away to build from scratch something.
