@@ -6,11 +6,16 @@ It is ideal for integration into shell scripts, crontabs, or home automation bac
 
 ## 🚀 Key Features
 
-* **Device Control**: Open/close shutters, toggle lights, or adjust thermostats (planed for the near future)
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
-* **Scenario Execution**: Trigger your pre-configured Somfy scenarios instantly.
 * **Low Footprint**: Optimized code, perfect switched for resource limites compulters like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
 * **Dev-Friendly**: Output is designed to be easily parsed (JSON or raw text).
+
+### Planned for next versions
+
+**TaHomaCtl** is in its early stage, providing mainly devices' querying. Following features are planned to be implemented soon :
+
+* **Device Control**: Open/close shutters, toggle lights, or adjust thermostats
+* **Scenario Execution**: Trigger your pre-configured Somfy scenarios instantly
 
 ## ⚠️ Limitations
 
