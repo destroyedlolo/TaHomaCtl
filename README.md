@@ -45,7 +45,7 @@ You need the TaHoma's developer mode activated : follow [Overkiz's intruction](h
 ### Compilation
 
 ```
-git clone [https://github.com/destroyedlolo/TaHomaCtl.git](https://github.com/destroyedlolo/TaHomaCtl.git)
+git clone https://github.com/destroyedlolo/TaHomaCtl.git
 cd TaHomaCtl
 make
 ```
