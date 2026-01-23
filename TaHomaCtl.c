@@ -275,7 +275,7 @@ struct _commands {
 	{ NULL, NULL, "Interacting"},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration" },
 	{ "Devices", func_Devs, "Query and store attached devices" },
-	{ "States", func_States, "<device name> query the states of a device" },
+	{ "States", func_States, "<device name> [State's name] query the states of a device" },
 
 	{ NULL, NULL, "Miscs"},
 	{ "#", NULL, "Comment, ignored line" },
