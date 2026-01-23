@@ -453,7 +453,7 @@ int main(int ac, char **av){
 			puts(
 				"TaHomaCrl v" VERSION "\n"
 				"\tControl your TaHoma box from a command line.\n"
-				"(c) L.Faillie (destroyedlolo) 2025\n"
+				"(c) L.Faillie (destroyedlolo) 2025-26\n"
 				"\nScripting :\n"
 				"\t-f : source provided script\n"
 				"\t-N : don't execute ~/.tahomactl at startup\n"
