@@ -182,7 +182,7 @@ static void func_history(const char *arg){
 	}
 
 	for(int i = 0; i < my_history_state->length; ++i)
-		printf("\t%s\n", my_history_state->entries[i]->line);
+		puts(my_history_state->entries[i]->line);
 
 	history_set_history_state(my_history_state);
 }
@@ -292,9 +292,10 @@ static void exec(struct substring *cmd, const char *arg){
 		printf("> %.*s\n", cmd->len, cmd->s);
 
 	struct _commands *c = findCommand(cmd);
-	if(c && c->func)
-		c->func(arg);
-	else
+	if(c){
+		if(c->func)
+			c->func(arg);
+	} else
 		printf("*E* Unknown command \"%.*s\" : type '?' for list of known directives\n", cmd->len, cmd->s);
 }
 
