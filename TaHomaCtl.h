@@ -32,12 +32,24 @@ extern bool trace;
 extern bool verbose;
 
 	/* Utilities */
-extern const char *FreeAndSet(char **storage, const char *val);
-extern void spent(bool);	/* Caution, not reentrant */
+extern const char *FreeAndSet(char **storage, const char *val);	/* Update a storage with a new value */
+extern void spent(bool);	/* Time spent. Caution, not reentrant */
+
+	/* Destructive string management */
 extern char *nextArg(char *);	/* Point to the next argument*/
+extern bool extractToken(char *, char **);
+
+	/* Tokenisation and sub strings' */
+struct substring {
+	const char *s;
+	size_t len;
+};
+
+extern bool extractTokenSub(struct substring *, char *, const char**);
+extern int substringcmp(struct substring *, const char *);
 
 	/* Configuration related */
-extern void clean(char **);		// Clean a configuration reference
+extern void clean(char **);		/* Safe free() an object */
 extern void func_scan(char *);
 
 	/* Response handling */

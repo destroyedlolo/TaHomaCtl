@@ -11,8 +11,6 @@
 #include <unistd.h>	/* getopt() */
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <assert.h>
 #include <pwd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -38,58 +36,6 @@ bool debug = false;
 
 static const char *ascript = NULL;	/* User script to launch (from launch parameters) */
 static bool nostartup = false;	/* Do not source .tahomactl */
-
-	/* **
-	 * Utilities
-	 * **/
-
-const char *FreeAndSet(char **storage, const char *val){
-	if(*storage)
-		free(*storage);
-
-	*storage = strdup(val);
-	assert(*storage);
-
-	return(*storage);
-}
-
-void clean(char **obj){
-	if(*obj){
-		free(*obj);
-		*obj = NULL;
-	}
-}
-
-char *nextArg(char *arg){
-	char *p = strchr(arg, ' ');
-	if(!p)
-		return NULL;
-
-	*(p++) = 0;	/* end current argument */
-	if(*p)
-		return p;
-	else
-		return NULL;
-}
-
-static unsigned long timespec_to_ms(const struct timespec *ts){
-	return((unsigned long)ts->tv_sec * 1000) + (ts->tv_nsec / 1000000L);
-}
-
-void spent(bool ending){
-		/* Measure time spent b/w starting (false) and ending (true) */
-	static struct timespec beg, end;
-
-	if(clock_gettime(CLOCK_MONOTONIC, ending ? &end : &beg) == -1){
-		perror("clock_gettime')");
-		return;
-	}
-
-	if((debug) && ending){
-		unsigned long d = timespec_to_ms(&end) - timespec_to_ms(&beg);
-		printf("*D* Time spent : %0.3f\n", (double)d / 1000.0);
-	}
-}
 
 static const char *affval(const char *v){
 	if(v)
@@ -352,13 +298,9 @@ static void exec(const char *cmd, char *arg){
 static void execline(char *l){
 	char *arg;
 
-	if((arg = strpbrk(l, " \t"))){
-		*(arg++) = 0;
-		while( *arg && !isgraph(*arg))	// skip non printable
-			++arg;
-
+	if(extractToken(l, &arg))
 		exec(l, *arg ? arg:NULL );
-	} else	// No argument
+	else	/* No argument */
 		exec(l, NULL);
 }
 
@@ -431,10 +373,15 @@ char *dev_generator(const char *text, int state){
 
 char **command_completion(const char *text, int start, int end){
 	rl_attempted_completion_over = 1;
-	if(!start)
+	if(!start)	/* At command level */
         return rl_completion_matches(text, command_generator);
 
-	if(!strncmp(rl_line_buffer, "States", 6))
+		/* Find out the command we're working on */
+	struct substring cmd;
+	const char *arg;
+	extractTokenSub(&cmd, rl_line_buffer, &arg);
+	
+	if(!substringcmp(&cmd, "States"))
 		return rl_completion_matches(text, dev_generator);
 
     return ((char **)NULL);
@@ -525,6 +472,7 @@ int main(int ac, char **av){
 	}
 
 	if(!nostartup){
+			/* Read startup (configuration ?) file */
 		struct passwd *pw = getpwuid(getuid());	/* Find user's info */
 		if(!pw)
 			fputs("*E* Can't read user's info\n", stderr);

@@ -1,5 +1,5 @@
 # makefile created automaticaly by LFMakeMaker
-# LFMakeMaker 1.6 (May  7 2022 20:46:23) (c)LFSoft 1997
+# LFMakeMaker 1.6 (Oct 23 2024 22:20:42) (c)LFSoft 1997
 
 gotoall: all
 
@@ -20,9 +20,12 @@ AvahiScaning.o : AvahiScaning.c TaHomaCtl.h Makefile
 TaHomaCtl.o : TaHomaCtl.c TaHomaCtl.h Makefile 
 	$(cc) -c -o TaHomaCtl.o TaHomaCtl.c $(opts) 
 
-TaHomaCtl : TaHomaCtl.o AvahiScaning.o APIrequest.o APIprocess.o \
-  Makefile 
-	 $(cc) -o TaHomaCtl TaHomaCtl.o AvahiScaning.o APIrequest.o \
-  APIprocess.o $(opts) 
+Utilities.o : Utilities.c TaHomaCtl.h Makefile 
+	$(cc) -c -o Utilities.o Utilities.c $(opts) 
+
+TaHomaCtl : Utilities.o TaHomaCtl.o AvahiScaning.o APIrequest.o \
+  APIprocess.o Makefile 
+	 $(cc) -o TaHomaCtl Utilities.o TaHomaCtl.o AvahiScaning.o \
+  APIrequest.o APIprocess.o $(opts) 
 
 all: TaHomaCtl 
