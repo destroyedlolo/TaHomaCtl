@@ -386,7 +386,8 @@ char **command_completion(const char *text, int start, int end){
 	const char *arg;
 	extractTokenSub(&cmd, rl_line_buffer, &arg);
 	
-	if(!substringcmp(&cmd, "States"))
+	struct _commands *c = findCommand(&cmd);
+	if(c && c->devarg)
 		return rl_completion_matches(text, dev_generator);
 
     return ((char **)NULL);
