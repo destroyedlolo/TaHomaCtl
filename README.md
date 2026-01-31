@@ -2,13 +2,13 @@
 
 **TaHomaCtl** is a lightweight command-line interface (CLI) designed to control Somfy TaHoma home automation gateways (Switch, Connexoon, etc.) strictly locally.
 
-It is ideal for integration into shell scripts, crontabs, or home automation backends.
+It is ideal for integration into shell scripts, crontabs, home automation backends or discover your configuration's internals.
 
 ## 🚀 Key Features
 
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
-* **Low Footprint**: Optimized code, perfect switched for resource limites compulters like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
-* **Dev-Friendly**: Output is designed to be easily parsed (JSON or raw text).
+* **Low Footprint**: Optimized code, perfect suited for resource limited computers like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
+* **Dev-Friendly**: Output is designed to be easily parsed.
 
 ### Planned for next versions
 
@@ -19,16 +19,17 @@ It is ideal for integration into shell scripts, crontabs, or home automation bac
 
 ## ⚠️ Limitations
 
-**TaHomaCtl** is interacting directly with your TaHoma, will not try to interpret results, will not try to secure dangerous actions : it's only an interface to use the Overkiz's public local interface, no more, no less.  
+**TaHomaCtl** is interacting directly with your TaHoma, will not try to interpret results, will not try to secure
+dangerous actions : it's only an interface to use the Overkiz's public local interface, no more, no less.  
 In other words, it has no knowlegde about the devices you're steering.
 
-As dealing directly with your gateway, you can't interact or control stuffs managed at Somfy's cloud side, like Somfy Protect or Cloud2Cloud processes.  
-The solution may be to use the Overkiz's "*end user cloud public API*", but my smart homing aims to be as local as possible. Consequently, it's out of the scope of TaHomaCtl.
+In addition, TaHomaCtl is dealing directly with your gateway. Consequently, it can't interact or control stuffs managed at Somfy's cloud side (like *Somfy Protect* or *Cloud2Cloud* processes).  
+The solution may be to use the Overkiz's "*end user cloud public API*". As my smart home solution aims to be as local as possible, it's not currently planned for integration in TaHomaCtl.
 
 > [!WARNING]
 > The TaHoma is very slow to respond to some requests at first :
 > - mDNS discovery (see discovery section)
-> - 1st request handling : if you've got a timeout for the 1st request, retry. As per my test, it takes up to 30 seconds to responds. As soon as the 1st request succeeded, further request will succeed smoothly.
+> - 1st request handling : if you've got a timeout for the 1st request, retry. As per my own tests, it takes up to 30 seconds to respond. As soon as the 1st request succeeded, further request will succeed smoothly.
 
 ## 🛠 Installation
 
@@ -58,9 +59,9 @@ Use online help for uptodate list of supported arguments.
 
 ```
 $ ./TaHomaCtl -h
-TaHomaCrl v0.3
+TaHomaCrl v0.7
 	Control your TaHoma box from a command line.
-(c) L.Faillie (destroyedlolo) 2025
+(c) L.Faillie (destroyedlolo) 2025-26
 
 Scripting :
 	-f : source provided script
@@ -84,7 +85,7 @@ Misc :
 ```
 
 * **-U** : don't try to enforce security SSL chaine. Usefull if you haven't imported Overkiz's root CA.
-* **-N** : by default, TaHomaCtl will try to source ~/.tahomactl at startup, which aims to contain TaHoma's connectivity information. This argument prevents it.
+* **-N** : by default, TaHomaCtl will try to source `~/.tahomactl` at startup, which aims to contain TaHoma's connectivity information. This argument prevents it.
 
 ### In the application
 
@@ -106,7 +107,8 @@ TaHoma's Configuration
 'TaHoma_port' : [num] set or display TaHoma's port number
 'TaHoma_token' : [value] indicate application token
 'timeout' : [value] specify API call timeout (seconds)
-'scan' : Look for Tahoma's ZeroConf advertising
+'scan_TaHoma' : Look for Tahoma's ZeroConf advertising
+'scan_Devices' : Query and store attached devices
 'status' : Display current connection informations
 
 Scripting
@@ -122,7 +124,7 @@ Verbosity
 Interacting
 -----------
 'Gateway' : Query your gateway own configuration
-'Devices' : Query and store attached devices
+'Device' : [name] display device "name" information or the devices list
 'States' : <device name> [State's name] query the states of a device
 
 Miscs
@@ -135,15 +137,17 @@ Miscs
 
 #### Discoverying your TaHoma
 
-* **scan** will try to find out your TaHoma.
-* Upon success, **status** will show you stored information
-* you **have to** provide application token (from Somfy's TaHoma application) using **TaHoma_token** command
+* **scan_TaHoma** will try to find out your TaHoma,
+* **scan_Devices** will read from your TaHoma discovered devices,
+* Upon success, **status** will show you stored information,
+* you **have to** provide application token (from Somfy's TaHoma application) using **TaHoma_token** command,
 * finally, **save_config** to store all those valuable information. 
 
+As example (notice the **v** enabling the verbose mode):
 ```
 ./TaHomaCtl -Uv
 *W* SSL chaine not enforced (unsafe mode)
-TaHomaCtl > scan 
+TaHomaCtl > scan_TaHoma 
 *I* Service 'gateway-xxxx-xxxx-xxxx' of type '_kizboxdev._tcp' in domain 'local':
 	gateway-xxxx-xxxx-xxxx.local:8443 (192.168.0.36)
 	TXT="fw_version=2025.5.5-9" "gateway_pin=xxxx-xxxx-xxxx" "api_version=1"
@@ -153,13 +157,42 @@ TaHomaCtl > scan
 	wide_area: 0
 	multicast: 1
 	cached: 1
+TaHomaCtl > scan_Devices 
+*I* HTTP return code : 200
+*I* 5 devices
+*I* IO (10069463) [io:StackComponent]
+	URL : io://xxxx-xxxx-xxxx/10069463
+	Type : 5, subsystemId : 0
+	synced, enabled, available
+		Type: PROTOCOL_GATEWAY
+*I* Deco [io:OnOffIOComponent]
+	URL : io://xxxx-xxxx-xxxx/5335270
+	Type : 1, subsystemId : 0
+	synced, enabled, available
+		Type: ACTUATOR
+*I* Boiboite [internal:PodV3Component]
+	URL : internal://xxxx-xxxx-xxxx/pod/0
+	Type : 1, subsystemId : 0
+	synced, enabled, available
+		Type: ACTUATOR
+*I* INTERNAL (wifi/0) [internal:WifiComponent]
+	URL : internal://xxxx-xxxx-xxxx/wifi/0
+	Type : 1, subsystemId : 0
+	synced, enabled, available
+		Type: ACTUATOR
+*I* ZIGBEE (65535) [zigbee:TransceiverV3_0Component]
+	URL : zigbee://xxxx-xxxx-xxxx/65535
+	Type : 5, subsystemId : 0
+	synced, enabled, available
+		Type: PROTOCOL_GATEWAY
 TaHomaCtl > status
 *I* Connection :
-	Tahoma's host : gateway-xxxx-xxxx-xxxx.local
-	Tahoma's IP : 192.168.0.36
+	Tahoma's host : gateway-2095-0445-1705.local
+	Tahoma's IP : 192.168.0.30
 	Tahoma's port : 8443
 	Token : set
 	SSL chaine : not checked (unsafe)
+*I* 5 Stored devices
 TaHomaCtl > save_config /tmp/tahoma
 TaHomaCtl > 
 ```
