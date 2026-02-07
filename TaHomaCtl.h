@@ -31,10 +31,6 @@ extern bool debug;
 extern bool trace;
 extern bool verbose;
 
-	/* Utilities */
-extern const char *FreeAndSet(char **storage, const char *val);	/* Update a storage with a new value */
-extern void spent(bool);	/* Time spent. Caution, not reentrant */
-
 	/* Tokenisation and sub strings' */
 struct substring {
 	const char *s;	/* NULL if the string is empty */
@@ -43,6 +39,12 @@ struct substring {
 
 extern bool extractTokenSub(struct substring *, const char *, const char**);
 extern int substringcmp(struct substring *, const char *);
+
+	/* Utilities */
+extern const char *FreeAndSet(char **storage, const char *val);	/* Update a storage with a new value */
+extern void spent(bool);	/* Time spent. Caution, not reentrant */
+extern char *dynstringAdd(char *s, char *add);	/* Add 'add' string to s */
+extern char *dynstringAddSub(char *s, struct substring *add);
 
 	/* Configuration related */
 extern void clean(char **);		/* Safe free() an object */

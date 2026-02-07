@@ -85,4 +85,26 @@ void spent(bool ending){
 	}
 }
 
+	/* Adding to a dynamic string */
+char *dynstringAdd(char *s, char *add){
+	bool new = !s;
+	char *res = realloc(s, (s ? strlen(s):0) + strlen(add) + 1);	/* Allocate the new string */
+	assert(res);
 
+	if(new)
+		strcpy(res, add);
+	else
+		strcat(res, add);
+
+	return(res);
+}
+
+char *dynstringAddSub(char *s, struct substring *add){
+	size_t len = s ? strlen(s) : 0;
+	char *res = realloc(s, len + add->len + 1);	/* Allocate the new string */
+	assert(res);
+
+	strncpy(res + len, add->s, add->len+1);
+
+	return(res);
+}

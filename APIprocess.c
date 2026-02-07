@@ -442,5 +442,58 @@ void func_States(const char *arg){
 	freeResponse(&buff);
 }
 
-void func_Command(const char *){
+void func_Command(const char *arg){
+	if(!arg){
+		fputs("*E* Command is expecting at last a device's name.\n", stderr);
+		return;
+	}
+
+	struct substring devname, command;
+	const char *next;
+
+		/* Extract the device name */
+	extractTokenSub(&devname, arg, &next);
+
+	struct Device *dev = findDevice(&devname);
+	if(!dev){
+		fputs("*E* Device not found.\n", stderr);
+		return;
+	}
+
+		/* Extract the command name */
+	if(!next || !*next){
+		fputs("*E* Missing command's name.\n", stderr);
+		return;
+	}
+	extractTokenSub(&command, next, &next);
+
+		/* build command line */
+	char *cmd = dynstringAdd(NULL, 
+"{\"label\":\"x\","
+"\"actions\":["
+"{\"commands\":["
+"{\"name\":\""
+	);
+
+	cmd = dynstringAddSub(cmd, &command);
+
+	cmd = dynstringAdd(cmd,
+"\","
+"\"parameters\":["
+	);
+
+/*TODO argument */
+
+	cmd = dynstringAdd(cmd, "]}],\"deviceURL\":\"");
+
+	char *enc = curl_easy_escape(curl, dev->url, 0);
+	assert(enc);
+	cmd = dynstringAdd(cmd, enc);
+	curl_free(enc);
+
+	cmd = dynstringAdd(cmd, "\"}]}");
+
+puts(cmd);
+
+	free(cmd);
 }
