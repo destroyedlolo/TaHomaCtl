@@ -86,7 +86,7 @@ void spent(bool ending){
 }
 
 	/* Adding to a dynamic string */
-char *dynstringAdd(char *s, char *add){
+char *dynstringAdd(char *s, const char *add){
 	bool new = !s;
 	char *res = realloc(s, (s ? strlen(s):0) + strlen(add) + 1);	/* Allocate the new string */
 	assert(res);

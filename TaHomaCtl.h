@@ -43,7 +43,7 @@ extern int substringcmp(struct substring *, const char *);
 	/* Utilities */
 extern const char *FreeAndSet(char **storage, const char *val);	/* Update a storage with a new value */
 extern void spent(bool);	/* Time spent. Caution, not reentrant */
-extern char *dynstringAdd(char *s, char *add);	/* Add 'add' string to s */
+extern char *dynstringAdd(char *s, const char *add);	/* Add 'add' string to s */
 extern char *dynstringAddSub(char *s, struct substring *add);
 
 	/* Configuration related */
@@ -62,7 +62,7 @@ void freeResponse(struct ResponseBuffer *);
 extern CURL *curl;
 extern void curl_cleanup(void);
 extern void buildURL(void);
-extern void callAPI(const char *, struct ResponseBuffer *);
+extern void callAPI(const char *, const char *, struct ResponseBuffer *);
 
 	/* Response processing */
 void func_Tgw(const char *);

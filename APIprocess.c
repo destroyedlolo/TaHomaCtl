@@ -265,7 +265,7 @@ void func_Tgw(const char *arg){
 
 	struct ResponseBuffer buff = {NULL};
 
-	callAPI("setup/gateways", &buff);
+	callAPI("setup/gateways", NULL, &buff);
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
@@ -324,7 +324,7 @@ void func_scandevs(const char *arg){
 	}
 
 	struct ResponseBuffer buff = {NULL};
-	callAPI("setup/devices", &buff);
+	callAPI("setup/devices", NULL, &buff);
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
@@ -392,7 +392,7 @@ void func_States(const char *arg){
 		printf("*D* Url: '%s'\n", url);
 
 	struct ResponseBuffer buff = {NULL};
-	callAPI(url, &buff);
+	callAPI(url, NULL, &buff);
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
@@ -486,14 +486,23 @@ void func_Command(const char *arg){
 
 	cmd = dynstringAdd(cmd, "]}],\"deviceURL\":\"");
 
+#if 0
 	char *enc = curl_easy_escape(curl, dev->url, 0);
 	assert(enc);
 	cmd = dynstringAdd(cmd, enc);
 	curl_free(enc);
+#else
+	cmd = dynstringAdd(cmd, dev->url);
+#endif
 
 	cmd = dynstringAdd(cmd, "\"}]}");
 
 puts(cmd);
+
+	struct ResponseBuffer buff = {NULL};
+	callAPI("exec/apply", NULL, &buff);
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
 	free(cmd);
 }

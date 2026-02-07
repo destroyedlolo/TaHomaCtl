@@ -128,7 +128,7 @@ void buildURL(void){
 		fprintf(stderr, "*E* curl_easy_setopt(%p) : %s\n", curl, curl_easy_strerror(res));
 }
 
-void callAPI(const char *api, struct ResponseBuffer *buff){
+void callAPI(const char *api, const char *post, struct ResponseBuffer *buff){
 	if(!tahoma || !ip || !port || !token){
 		fputs("*E* missing connection information to run the request.\n", stderr);
 		return;
@@ -151,6 +151,9 @@ void callAPI(const char *api, struct ResponseBuffer *buff){
 
 	if(debug)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+	if(post)
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post);
 
 	spent(false);
 	int res = curl_easy_perform(curl);
