@@ -119,13 +119,14 @@ void buildURL(void){
 	
 	global_headers = curl_slist_append(global_headers, host_header);
 	global_headers = curl_slist_append(global_headers, "Content-Type: application/json");
+	global_headers = curl_slist_append(global_headers, "accept: application/json");
 	if(debug)
 		for(struct curl_slist *c = global_headers; c; c = c->next)
 			printf("*D* Header -> '%s'\n", c->data);
 
 	int res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, global_headers);
 	if(res != CURLE_OK)
-		fprintf(stderr, "*E* curl_easy_setopt(%p) : %s\n", curl, curl_easy_strerror(res));
+		fprintf(stderr, "*E* curl_easy_setopt(%p) : %s\n", curl, curl_easy_strerror(res));	
 }
 
 void callAPI(const char *api, const char *post, struct ResponseBuffer *buff){
@@ -133,10 +134,20 @@ void callAPI(const char *api, const char *post, struct ResponseBuffer *buff){
 		fputs("*E* missing connection information to run the request.\n", stderr);
 		return;
 	}
-	
+
 	char full_url[url_len + strlen(api) + 1];
 	strcpy(full_url, url);
 	strcpy(full_url + url_len, api);
+
+	if(post){
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, (curl_off_t)-1);
+	} else {
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+	}
 
 	freeResponse(buff);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -152,19 +163,18 @@ void callAPI(const char *api, const char *post, struct ResponseBuffer *buff){
 	if(debug)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-	if(post)
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post);
-
 	spent(false);
 	int res = curl_easy_perform(curl);
 	spent(true);
 
 	if(res != CURLE_OK)
 		fprintf(stderr, "*E* Calling error : %s\n", curl_easy_strerror(res));
-	else if(verbose || debug){
+	else {
 		long http_code = 0;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-		printf("*I* HTTP return code : %ld\n", http_code);
+
+		if(http_code != 200)
+			printf("*E* HTTP return code : %ld\n", http_code);
 
 		if(debug){
 			double t;

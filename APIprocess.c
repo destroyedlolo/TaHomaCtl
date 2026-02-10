@@ -497,10 +497,8 @@ void func_Command(const char *arg){
 
 	cmd = dynstringAdd(cmd, "\"}]}");
 
-puts(cmd);
-
 	struct ResponseBuffer buff = {NULL};
-	callAPI("exec/apply", NULL, &buff);
+	callAPI("exec/apply", cmd, &buff);
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 

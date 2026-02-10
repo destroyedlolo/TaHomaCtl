@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.8"
+#define VERSION "0.9"
 
 	/* **
 	 * Configuration
