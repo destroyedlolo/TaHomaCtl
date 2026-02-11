@@ -29,7 +29,7 @@ extern AvahiProtocol avahiIP;
 
 extern bool debug;
 extern bool trace;
-extern bool verbose;
+extern unsigned int verbose;
 
 	/* Tokenisation and sub strings' */
 struct substring {

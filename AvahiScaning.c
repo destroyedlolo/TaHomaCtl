@@ -51,7 +51,7 @@ static void resolve_callback(
 				printf("*I* Service '%s' of type '%s' in domain '%s':\n", name, type, domain);
 			avahi_address_snprint(a, sizeof(a), address);
 			t = avahi_string_list_to_string(txt);
-			if(verbose || debug)
+			if(verbose > 1 || debug)
 				fprintf(stderr,
 					"\t%s:%u (%s)\n"
 					"\tTXT=%s\n"

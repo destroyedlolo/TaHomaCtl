@@ -62,8 +62,10 @@ static double getObjNumber(struct json_object *parent, const char *path[]){
 
 	if(json_object_is_type(obj, json_type_double))
 		return json_object_get_double(obj);
+	else if(json_object_is_type(obj, json_type_int))	/* It seems some object are only integers */
+		return json_object_get_int(obj);
 	else if(debug)
-		fputs("*E* Not a double\n", stderr);
+		fputs("*E* Not a double or integer\n", stderr);
 
 	return 0;
 }
@@ -286,7 +288,8 @@ void func_Tgw(const char *arg){
 			fputs("*E* Returned object is not an array", stderr);
 
 		json_object_put(parsed_json);
-	}
+	} else if(verbose)
+		fputs("*W* Empty response", stderr);
 	
 	freeResponse(&buff);
 }
@@ -343,7 +346,7 @@ void func_scandevs(const char *arg){
 				struct json_object *obj = json_object_array_get_idx(res, idx);
 
 				if(obj){
-					if(debug || verbose)
+					if(debug || verbose > 1)
 						printDeviceInfo(obj);
 					addDevice(obj);
 				} else
@@ -353,7 +356,9 @@ void func_scandevs(const char *arg){
 			fputs("*E* Returned object is not an array", stderr);
 
 		json_object_put(res);
-	}
+	} else if(verbose)
+		fputs("*W* Empty response", stderr);
+
 	freeResponse(&buff);
 }
 
@@ -438,7 +443,9 @@ void func_States(const char *arg){
 			fputs("*E* Returned object is not an array", stderr);
 
 		json_object_put(res);
-	}
+	} else if(verbose)
+		fputs("*W* Empty response", stderr);
+
 	freeResponse(&buff);
 }
 
@@ -485,22 +492,18 @@ void func_Command(const char *arg){
 /*TODO argument */
 
 	cmd = dynstringAdd(cmd, "]}],\"deviceURL\":\"");
-
-#if 0
-	char *enc = curl_easy_escape(curl, dev->url, 0);
-	assert(enc);
-	cmd = dynstringAdd(cmd, enc);
-	curl_free(enc);
-#else
 	cmd = dynstringAdd(cmd, dev->url);
-#endif
-
 	cmd = dynstringAdd(cmd, "\"}]}");
 
 	struct ResponseBuffer buff = {NULL};
 	callAPI("exec/apply", cmd, &buff);
-	if(debug)
-		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+	long http_code = 0;
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+	if(http_code == 200 && verbose)
+		puts("*I* Successful");
+	if(debug || verbose > 1)
+		printf("*I* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
 	free(cmd);
 }

@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.9"
+#define VERSION "0.10"
 
 	/* **
 	 * Configuration
@@ -30,7 +30,7 @@ bool unsafe = false;
 char *url = NULL;
 size_t url_len;
 long timeout = 0;
-bool verbose = false;
+unsigned int verbose = 0;
 bool trace = false;
 bool debug = false;
 
@@ -155,7 +155,7 @@ static void func_Devs(const char *arg){
 	if(!arg){	/* List all devices */
 		for(struct Device *dev = devices_list; dev; dev = dev->next){
 			printf("%s : %s\n", dev->label, dev->url);
-			if(verbose)
+			if(verbose > 1)
 				device_info(dev);
 		}
 	} else {	/* Info of a specific devices */
@@ -192,11 +192,13 @@ static void func_history(const char *arg){
 static void func_verbose(const char *arg){
 	if(arg){
 		if(!strcmp(arg, "on"))
-			verbose = true;
+			verbose = 1;
+		else if(!strcmp(arg, "more"))
+			verbose = 2;
 		else if(!strcmp(arg, "off"))
-			verbose = false;
+			verbose = 0;
 		else
-			fputs("*E* verbose accepts only 'on' and 'off'\n", stderr);
+			fputs("*E* verbose accepts only 'on', 'off' and 'more'\n", stderr);
 	} else
 		puts(verbose ? "I'm verbose" : "I'm quiet");
 }
@@ -257,7 +259,7 @@ struct _commands {
 	{ "script", func_script, "<file> execute the file", false, NULL},
 
 	{ NULL, NULL, "Verbosity", false},
-	{ "verbose", func_verbose, "[on|off|] Be verbose", false, NULL},
+	{ "verbose", func_verbose, "[on|off|more] Be verbose", false, NULL},
 	{ "trace", func_trace, "[on|off|] Trace every commands", false, NULL},
 
 	{ NULL, NULL, "Interacting", false, NULL},
@@ -483,7 +485,7 @@ char **command_completion(const char *text, int start, int end){
 int main(int ac, char **av){
 	int opt;
 
-	while( (opt = getopt(ac, av, ":+NhH:p:Uk:f:dvt46")) != -1){
+	while( (opt = getopt(ac, av, ":+NhH:p:Uk:f:dvVt46")) != -1){
 		switch(opt){
 		case 'f':
 			ascript = optarg;
@@ -513,7 +515,10 @@ int main(int ac, char **av){
 			trace = true;
 			break;
 		case 'v':
-			verbose = true;
+			verbose = 1;
+			break;
+		case 'V':
+			verbose = 2;
 			break;
 		case '?':	/* Unknown option */
 			fprintf(stderr, "unknown option: -%c\n", optopt);
@@ -536,6 +541,7 @@ int main(int ac, char **av){
 				"\t-6 : resolve Avahi advertisement in IPv6 only\n"
 				"\nMisc :\n"
 				"\t-v : add verbosity\n"
+				"\t-V : add even more verbosity\n"
 				"\t-t : add tracing\n"
 				"\t-d : add some debugging messages\n"
 				"\t-h ; display this help"
