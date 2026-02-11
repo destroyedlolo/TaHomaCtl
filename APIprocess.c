@@ -488,9 +488,26 @@ void func_Command(const char *arg){
 "\","
 "\"parameters\":["
 	);
+	
+	/* For the moment :
+	 * - only string argument are considered
+	 * - there is no checking about the number of arguments vs
+	 * command definition
+	 */
+	bool first = true;
+	while(next && *next){
+		struct substring arg;
+		extractTokenSub(&arg, next, &next);
+		
+		if(!first)
+			cmd = dynstringAdd(cmd, ",");
 
-/*TODO argument */
+		cmd = dynstringAdd(cmd, "\"");
+		cmd = dynstringAddSub(cmd, &arg);
+		cmd = dynstringAdd(cmd, "\"");
 
+		first = false;
+	}
 	cmd = dynstringAdd(cmd, "]}],\"deviceURL\":\"");
 	cmd = dynstringAdd(cmd, dev->url);
 	cmd = dynstringAdd(cmd, "\"}]}");

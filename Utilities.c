@@ -104,7 +104,8 @@ char *dynstringAddSub(char *s, struct substring *add){
 	char *res = realloc(s, len + add->len + 1);	/* Allocate the new string */
 	assert(res);
 
-	strncpy(res + len, add->s, add->len+1);
+	strncpy(res + len, add->s, add->len);
+	*(res + len + add->len) = 0;
 
 	return(res);
 }
