@@ -7,30 +7,33 @@ It is ideal for integration into shell scripts, crontabs, home automation backen
 ## 🚀 Key Features
 
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
+* **Control devices**: Send command to actuators
 * **Low Footprint**: Optimized code, perfect suited for resource limited computers like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
-* **Dev-Friendly**: Output is designed to be easily parsed.
 
-### Planned for next versions
+### What next ?
 
-**TaHomaCtl** is in its early stage, providing mainly devices' querying. Following features are planned to be implemented soon :
+Next version :
+* Steering from CLI arguments in addition to the actual interactive mode for a better scripting capabilities.
 
-* **Device Control**: Open/close shutters, toggle lights, or adjust thermostats
-* **Scenario Execution**: Trigger your pre-configured Somfy scenarios instantly
+Probably implemented one day (I don't have the use case yet) :
+* **Scenario Execution**: Trigger your local scenarios instantly.
+
+Big next step will be to implement TaHoma's compatibility in [Sélené](https://github.com/destroyedlolo/Selene) for a full integration in my own ecosystem.
 
 ## ⚠️ Limitations
 
 **TaHomaCtl** is interacting directly with your TaHoma, will not try to interpret results, will not try to secure
 dangerous actions : it's only a tool to interact with the Overkiz's public local interface, no more, no less.  
-In other words, it has no knowlegde about the devices you're steering. 
-The benefit is you can control any devices, even if I, the developer, haven't any information about it.
+In other words, it has no knowlegde about the devices you're steering.
+The benefit is you can control any devices without having to teach TaHomaCtl about it.
 
-In addition, TaHomaCtl is dealing directly with your gateway. Consequently, it can't interact or control stuffs managed at Somfy's cloud side (like *Somfy Protect* or *Cloud2Cloud* processes).  
+As a consequence, it can't interact stuffs managed at Somfy's cloud side (like *Somfy Protect* or *Cloud2Cloud* processes).  
 The solution may be to use the Overkiz's "*end user cloud public API*". As my smart home solution aims to be as local as possible, it's not currently planned for integration in TaHomaCtl.
 
 > [!WARNING]
 > The TaHoma is very slow to respond to some requests at first :
 > - mDNS discovery (see discovery section)
-> - 1st request handling : if you've got a timeout for the 1st request, retry. As per my own tests, it takes up to 30 seconds to respond. As soon as the 1st request succeeded, further request will succeed smoothly.
+> - 1st request handling : if you've got a timeout for the 1st request, retry. As per my own tests, it takes up to 30 seconds to wake up. As soon as the 1st request succeeded, further request will do smoothly.
 
 ## 🛠 Installation
 
@@ -60,7 +63,7 @@ Use online help for uptodate list of supported arguments.
 
 ```
 $ ./TaHomaCtl -h
-TaHomaCrl v0.7
+TaHomaCrl v0.11
 	Control your TaHoma box from a command line.
 (c) L.Faillie (destroyedlolo) 2025-26
 
@@ -80,6 +83,7 @@ Limiting scanning :
 
 Misc :
 	-v : add verbosity
+	-V : add even more verbosity
 	-t : add tracing
 	-d : add some debugging messages
 	-h ; display this help
@@ -119,14 +123,15 @@ Scripting
 
 Verbosity
 ---------
-'verbose' : [on|off|] Be verbose
+'verbose' : [on|off|more] Be verbose
 'trace' : [on|off|] Trace every commands
 
 Interacting
 -----------
 'Gateway' : Query your gateway own configuration
 'Device' : [name] display device "name" information or the devices list
-'States' : <device name> [State's name] query the states of a device
+'States' : <device name> [state name] query the states of a device
+'Command' : <device name> <command name> <argument> send a command to a device
 
 Miscs
 -----
@@ -199,47 +204,65 @@ TaHomaCtl >
 ```
 
 > [!TIP]
-> As said previously, the TaHoma doesn't react in a timely way to mDNS request and doesn't advertise often.<br>
-> The safer way seems to run Avahi's explorator and launch scan when the TaHoma is seen.
+> As said previously, the TaHoma doesn't advertise often and react slowly to mDNS response.
+> Be patient.
 
 #### Discovering your devices
 
-**Devices** will query your box for attached (and internal as well) devices. They will be displayed if the *verbose* mode is activated and stored in **TaHomaCtl** for further use.
+**scan_Devices** will query your box for attached devices.
 
 ```
-TaHomaCtl > Devices 
-*I* HTTP return code : 200
-*I* 5 devices
-*I* INTERNAL (wifi/0) [internal:WifiComponent]
-	URL : internal://xxxx-xxxx-xxxx/wifi/0
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* Boiboite [internal:PodV3Component]
-	URL : internal://xxxx-xxxx-xxxx/pod/0
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* ZIGBEE (65535) [zigbee:TransceiverV3_0Component]
-	URL : zigbee://xxxx-xxxx-xxxx/65535
-	Type : 5, subsystemId : 0
-	synced, enabled, available
-		Type: PROTOCOL_GATEWAY
-*I* Deco [io:OnOffIOComponent]
-	URL : io://xxxx-xxxx-xxxx/5335270
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* IO (10069463) [io:StackComponent]
-	URL : io://xxxx-xxxx-xxxx/10069463
-	Type : 5, subsystemId : 0
-	synced, enabled, available
-		Type: PROTOCOL_GATEWAY
+TaHomaCtl > scan_Devices 
+*I* 6 devices
 ```
 > [!CAUTION]
 > This request is very resource-intensive for the TaHoma, especially if you have many connected devices.
 > It is therefore advisable to use it as infrequently as possible, generally only once at startup.
 
+**Devices** will display stored devices.
+
+```
+TaHomaCtl > Device 
+ZIGBEE_(65535) : zigbee://xxxx-xxxx-xxxx/65535
+INTERNAL_(wifi/0) : internal://xxxx-xxxx-xxxx/wifi/0
+Boiboite : internal://xxxx-xxxx-xxxx/pod/0
+Deco : io://xxxx-xxxx-xxxx/5335270
+Porte_Chat : rts://xxxx-xxxx-xxxx/16774417
+IO_(10069463) : io://xxxx-xxxx-xxxx/10069463
+TaHomaCtl > Device Deco 
+Deco : io://xxxx-xxxx-xxxx/5335270
+	Commands
+		setName (1 arg)
+		startIdentify (0 arg)
+		unpairOneWayController (1 arg)
+		toggle (0 arg)
+		onWithTimer (1 arg)
+		setOnOff (1 arg)
+		getName (0 arg)
+		off (0 arg)
+		on (0 arg)
+		setConfigState (1 arg)
+		advancedRefresh (1 arg)
+		pairOneWayController (1 arg)
+		identify (0 arg)
+		delayedStopIdentify (1 arg)
+		stopIdentify (0 arg)
+		unpairAllOneWayControllers (0 arg)
+		addLockLevel (1 arg)
+		removeLockLevel (1 arg)
+		resetLockLevels (0 arg)
+		wink (1 arg)
+	States
+		core:RSSILevelState
+		core:DiscreteRSSILevelState
+		core:NameState
+		core:OnOffState
+		io:PriorityLockOriginatorState
+		io:PriorityLockLevelState
+		core:PriorityLockTimerState
+		core:CommandLockLevelsState
+		core:StatusState
+```
 #### Querying a device
 
 ```
@@ -258,28 +281,28 @@ It's also possible to query a single state. In such case, only the value is retu
 
 ```
 $ ./TaHomaCtl -U
-TaHomaCtl > Devices 
+TaHomaCtl > scan_Devices 
 TaHomaCtl > States Deco core:OnOffState
 "off"
 TaHomaCtl > 
 ```
 
 > [!NOTE]
-> **Devices** command here is still important to refresh attached devices internal information.  
+> **scan_Devices** command here is still important to refresh attached devices internal information.  
 > It would be easy by the way to add a command where the device URI is provided instead of name to ride out it.
 
 Intesting in scripts :
 
 ``` bash
 $ ./TaHomaCtl -Uf - << eoc
-Devices
+scan_Devices
 States Deco core:OnOffState
 eoc
 "off"
 ```
 
 > [!IMPORTANT]
-> For the moment, I made tests only with the device I'm having : an **IO OnOff switch**.<br>
+> For the moment, I made tests only with the device I'm having : an **IO OnOff switch**.  
 > Consequently, some figures are not handled as not provided by my device (like Arrays or sub Objects).
 
 ## Why TaHomaCtl ?
