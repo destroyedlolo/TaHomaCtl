@@ -1,38 +1,38 @@
-# TaHomaCtl
+TaHomaCtl
+=====
 
 **TaHomaCtl** is a lightweight command-line interface (CLI) designed to control Somfy TaHoma home automation gateways (Switch, Connexoon, etc.) strictly locally.
 
 It is ideal for integration into shell scripts, crontabs, home automation backends or discover your configuration's internals.
 
-## Table of content
+# Table of content
 
-- [TaHomaCtl](#tahomactl)
-  * [🚀 Key Features](#---key-features)
-    + [What next ?](#what-next--)
-  * [⚠️ Limitations](#---limitations)
-  * [🛠 Installation](#---installation)
-    + [Prerequisites](#prerequisites)
-    + [Compilation](#compilation)
-  * [📖 Usages](#---usages)
-    + [Shell parameters](#shell-parameters)
-    + [In the application](#in-the-application)
-      - [Discoverying your TaHoma](#discoverying-your-tahoma)
-      - [Discovering your devices](#discovering-your-devices)
-      - [Querying a device](#querying-a-device)
-      - [Steering a device](#steering-a-device)
-  * [Why TaHomaCtl ?](#why-tahomactl--)
-    + [Integration in my own automation solution](#integration-in-my-own-automation-solution)
-    + [Vibe coding testing](#vibe-coding-testing)
+- [🚀 Key Features](#---key-features)
+  * [What next ?](#what-next--)
+- [⚠️ Limitations](#---limitations)
+- [🛠 Installation](#---installation)
+  * [Prerequisites](#prerequisites)
+  * [Compilation](#compilation)
+- [📖 Usages](#---usages)
+  * [Shell parameters](#shell-parameters)
+  * [Exchanging with your TaHoma](#exchanging-with-your-tahoma)
+    + [Discoverying your TaHoma](#discoverying-your-tahoma)
+    + [Discovering your devices](#discovering-your-devices)
+    + [Querying a device](#querying-a-device)
+    + [Steering a device](#steering-a-device)
+- [Why TaHomaCtl ?](#why-tahomactl--)
+  * [Integration in my own automation solution](#integration-in-my-own-automation-solution)
+  * [Vibe coding testing](#vibe-coding-testing)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
-## 🚀 Key Features
+# 🚀 Key Features
 
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
 * **Control devices**: Send command to actuators
 * **Low Footprint**: Optimized code, perfect suited for resource limited computers like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
 
-### What next ?
+## What next ?
 
 Next version :
 * Steering from CLI arguments in addition to the actual interactive mode for a better scripting capabilities.
@@ -42,7 +42,7 @@ Probably implemented one day (I don't have the use case yet) :
 
 Big next step will be to implement TaHoma's compatibility in [Sélené](https://github.com/destroyedlolo/Selene) for a full integration in my own ecosystem.
 
-## ⚠️ Limitations
+# ⚠️ Limitations
 
 **TaHomaCtl** is interacting directly with your TaHoma, will not try to interpret results, will not try to secure
 dangerous actions : it's only a tool to interact with the Overkiz's public local interface, no more, no less.  
@@ -57,9 +57,9 @@ The solution may be to use the Overkiz's "*end user cloud public API*". As my sm
 > - mDNS discovery (see discovery section)
 > - 1st request handling : if you've got a timeout for the 1st request, retry. As per my own tests, it takes up to 30 seconds to wake up. As soon as the 1st request succeeded, further request will do smoothly.
 
-## 🛠 Installation
+# 🛠 Installation
 
-### Prerequisites
+## Prerequisites
 * A C compiler (GCC/Clang).
 
 3rd party libraries (on Debian derivate, you need the development version `-dev`)
@@ -69,7 +69,7 @@ The solution may be to use the Overkiz's "*end user cloud public API*". As my sm
 
 You need the TaHoma's developer mode activated : follow [Overkiz's intruction](https://github.com/Somfy-Developer/Somfy-TaHoma-Developer-Mode).
 
-### Compilation
+## Compilation
 
 ```
 git clone https://github.com/destroyedlolo/TaHomaCtl.git
@@ -77,9 +77,9 @@ cd TaHomaCtl
 make
 ```
 
-## 📖 Usages
+# 📖 Usages
 
-### Shell parameters
+## Shell parameters
 
 Use online help for uptodate list of supported arguments.
 
@@ -114,7 +114,7 @@ Misc :
 * **-U** : don't try to enforce security SSL chaine. Usefull if you haven't imported Overkiz's root CA.
 * **-N** : by default, TaHomaCtl will try to source `~/.tahomactl` at startup, which aims to contain TaHoma's connectivity information. This argument prevents it.
 
-### In the application
+## Exchanging with your TaHoma
 
 Inside the application, you will benefit of GNU's readline features :
 - history
@@ -164,7 +164,7 @@ Miscs
 'Quit' : See you
 ```
 
-#### Discoverying your TaHoma
+### Discoverying your TaHoma
 
 * **scan_TaHoma** will try to find out your TaHoma,
 * **scan_Devices** will read from your TaHoma discovered devices,
@@ -230,7 +230,7 @@ TaHomaCtl >
 > As said previously, the TaHoma doesn't advertise often and react slowly to mDNS response.
 > Be patient.
 
-#### Discovering your devices
+### Discovering your devices
 
 **scan_Devices** will query your box for attached devices.
 
@@ -286,7 +286,7 @@ Deco : io://xxxx-xxxx-xxxx/5335270
 		core:CommandLockLevelsState
 		core:StatusState
 ```
-#### Querying a device
+### Querying a device
 
 ```
 TaHomaCtl > States Deco 
@@ -324,7 +324,7 @@ eoc
 "off"
 ```
 
-#### Steering a device
+### Steering a device
 
 **Command** can send an order to a given device, potentially with parameters.
 
@@ -359,9 +359,9 @@ TaHomaCtl > Current
 TaHomaCtl > 
 ```
 
-## Why TaHomaCtl ?
+# Why TaHomaCtl ?
 
-### Integration in my own automation solution
+## Integration in my own automation solution
 
 My own smart home solution is quite efficient and complete ([Marcel](https://github.com/destroyedlolo/Marcel), [Majordome](https://github.com/destroyedlolo/Majordome), ...), no need to replace anything. But I was wondering how I can integrate this nice box to my own ecosystem, as example to steer **IO-homecontrol** devices.
 
@@ -371,7 +371,7 @@ TaHomaCtl was initially made as a Proof of Concept (PoC) before integrating some
 > Yes, I'm proudly part of Somfy/Overkiz, but this code doesn't contain any internals' and will not to avoid any interest conflict : it was built only from publicly available information and my own testing.<br>
 > No, don't ask me about anything not made public, I'll not reply.
 
-### Vibe coding testing
+## Vibe coding testing
 
 **TaHomaCtl** uses some technologies I hadn't coded before, like mDNS advertising. This small project was a good candidate to test AI companions (ChatGPT and Gemini) and vibe coding. AI generated code, sometime corrected, can be found in TestCodes. The result is quite mixed :
 
