@@ -132,6 +132,7 @@ Interacting
 'Device' : [name] display device "name" information or the devices list
 'States' : <device name> [state name] query the states of a device
 'Command' : <device name> <command name> <argument> send a command to a device
+'Current' : Get action group executions currently running and launched from the local API
 
 Miscs
 -----
@@ -301,9 +302,40 @@ eoc
 "off"
 ```
 
-> [!IMPORTANT]
-> For the moment, I made tests only with the device I'm having : an **IO OnOff switch**.  
-> Consequently, some figures are not handled as not provided by my device (like Arrays or sub Objects).
+#### Steering a device
+
+**Command** can send an order to a given device, potentially with parameters.
+
+```
+TaHomaCtl > Command IO_(10069463) discoverSomfyUnsetActuators
+*I* Successful
+```
+
+> [!CAUTION]
+> The number of argument is not verified and more their types (as not provided).
+> The TaHoma box will reject incorrect commands.
+
+Actually running orders (that are not too fast to be seen) can be listed using **Current** command.
+
+```
+TaHomaCtl > Command IO_(10069463) discoverSomfyUnsetActuators
+*I* Successful
+TaHomaCtl > Current 
+*I* 1 Execution(s)
+*I* id: e061b077-7330-4fe9-8446-48b11c2ddbe2
+	description : "Execution : TaHomaCtl"
+	owner: local	state: IN_PROGRESS	type: MANUAL_CONTROL
+	Started on Sat Feb 14 20:05:50 2026
+		Device : IO_(10069463) 'io://2095-0445-1705/10069463'
+		[
+			name :
+				"discoverSomfyUnsetActuators"
+			parameters :
+				[
+				]
+		]
+TaHomaCtl > 
+```
 
 ## Why TaHomaCtl ?
 
