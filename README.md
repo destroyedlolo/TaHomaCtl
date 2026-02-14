@@ -4,6 +4,28 @@
 
 It is ideal for integration into shell scripts, crontabs, home automation backends or discover your configuration's internals.
 
+## Table of content
+
+- [TaHomaCtl](#tahomactl)
+  * [🚀 Key Features](#---key-features)
+    + [What next ?](#what-next--)
+  * [⚠️ Limitations](#---limitations)
+  * [🛠 Installation](#---installation)
+    + [Prerequisites](#prerequisites)
+    + [Compilation](#compilation)
+  * [📖 Usages](#---usages)
+    + [Shell parameters](#shell-parameters)
+    + [In the application](#in-the-application)
+      - [Discoverying your TaHoma](#discoverying-your-tahoma)
+      - [Discovering your devices](#discovering-your-devices)
+      - [Querying a device](#querying-a-device)
+      - [Steering a device](#steering-a-device)
+  * [Why TaHomaCtl ?](#why-tahomactl--)
+    + [Integration in my own automation solution](#integration-in-my-own-automation-solution)
+    + [Vibe coding testing](#vibe-coding-testing)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## 🚀 Key Features
 
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
