@@ -90,6 +90,56 @@ static const char *affString(const char *v){
 		return "Not found";
 }
 
+static void gentab(unsigned int n){
+	do 
+		putchar('\t');
+	while(--n);
+}
+
+void printObject(struct json_object *obj, unsigned int nbre_tab){
+	if(!obj)
+		return;
+
+	switch(json_object_get_type(obj)){
+	case json_type_object: {
+			json_object_object_foreach(obj, key, val){
+				gentab(nbre_tab);
+				printf("%s :\n", key);
+				printObject(val, nbre_tab+1 );
+			}
+		}
+		break;
+	case json_type_array:
+		int n = json_object_array_length(obj);
+		gentab(nbre_tab); puts("[");
+		for(int i = 0; i < n; ++i){
+			struct json_object *sub = json_object_array_get_idx(obj, i);
+			printObject(sub, nbre_tab+1);
+		}
+		gentab(nbre_tab); puts("]");
+		break;
+	case json_type_string:
+		gentab(nbre_tab);
+		printf("\"%s\"\n", json_object_get_string(obj));
+		break;
+	case json_type_int:
+		gentab(nbre_tab);
+		printf("%lld\n", (long long)json_object_get_int64(obj));
+		break;
+	case json_type_boolean:
+		gentab(nbre_tab);
+		printf("%s\n", json_object_get_boolean(obj) ? "true":"false");
+		break;
+	case json_type_double:
+		gentab(nbre_tab);
+		printf("%f\n", json_object_get_double(obj));
+		break;
+	case json_type_null:
+		gentab(nbre_tab);
+		puts("NULL");
+		break;
+	}
+}
 
 	/*
 	 * Devices
@@ -255,6 +305,15 @@ struct Device *findDevice(struct substring *name){
 	return NULL;
 }
 
+struct Device *findDeviceByURL(const char *url){
+	for(struct Device *r = devices_list; r; r = r->next){
+		if(!strcmp(url, r->url))
+			return r;
+	}
+
+	return NULL;
+}
+
 	/*
 	 * User commands
 	 */
@@ -285,7 +344,7 @@ void func_Tgw(const char *arg){
 			} else
 				fputs("*E* Empty or unexpected object returned", stderr);
 		} else
-			fputs("*E* Returned object is not an array", stderr);
+			fputs("*E* Returned object is not an array as expected", stderr);
 
 		json_object_put(parsed_json);
 	} else if(verbose)
@@ -476,7 +535,7 @@ void func_Command(const char *arg){
 
 		/* build command line */
 	char *cmd = dynstringAdd(NULL, 
-"{\"label\":\"x\","
+"{\"label\":\"TaHomaCtl\","
 "\"actions\":["
 "{\"commands\":["
 "{\"name\":\""
@@ -522,5 +581,67 @@ void func_Command(const char *arg){
 	if(debug || verbose > 1)
 		printf("*I* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
+	freeResponse(&buff);
 	free(cmd);
+}
+
+void func_Current(const char *arg){
+	if(arg){
+		fputs("*E* Devices doesn't expect an argument.\n", stderr);
+		return;
+	}
+
+	struct ResponseBuffer buff = {NULL};
+	callAPI("/exec/current", NULL, &buff);
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+			/* Display result */
+	if(buff.memory){
+		struct json_object *parsed_json = json_tokener_parse(buff.memory);
+
+		if(json_object_is_type(parsed_json, json_type_array)){	/* 1st object is an array */
+			int nbre = json_object_array_length(parsed_json);
+			if(verbose)
+				printf("*I* %d Execution(s)\n", nbre);
+
+			for(int i=0; i<nbre; ++i){
+				struct json_object *item = json_object_array_get_idx(parsed_json, i);
+				printf("*I* id: %s\n", affString(getObjString(item, OBJPATH( "id", NULL ) )));
+				printf("\tdescription : \"%s\"\n", affString(getObjString(item, OBJPATH( "description", NULL) )));
+				printf("\towner: %s\tstate: %s\ttype: %s\n", 
+					affString(getObjString(item, OBJPATH( "owner", NULL) )),
+					affString(getObjString(item, OBJPATH( "state", NULL) )),
+					affString(getObjString(item, OBJPATH( "executionSubType", NULL) ))
+				);
+				
+				struct json_object *startobj = getObj(item, OBJPATH( "startTime", NULL));
+				time_t sec = startobj ? json_object_get_int64(startobj)/1000 : 0;
+				printf("\tStarted on %s", ctime(&sec));
+
+				if(( startobj = getObj(item, OBJPATH( "actionGroup", "actions",NULL)) )){
+					if(json_object_is_type(startobj, json_type_array)){
+						int n = json_object_array_length(startobj);
+						for(int j=0; j<n; ++j){
+							struct json_object *action = json_object_array_get_idx(startobj, j);
+							const char *url = getObjString(action, OBJPATH( "deviceURL", NULL));
+							printf("\t\tDevice : ");
+							struct Device *dev = findDeviceByURL(url);
+							if(dev)
+								printf("%s ", dev->label);
+							printf("'%s'\n", affString(url));
+
+							struct json_object *commands = getObj(action, OBJPATH( "commands", NULL));
+							printObject(commands, 2);
+						}
+					}
+				}
+			}
+		} else
+			fputs("*E* Returned object is not an array as expected", stderr);
+
+		json_object_put(parsed_json);
+	}
+
+	freeResponse(&buff);
 }

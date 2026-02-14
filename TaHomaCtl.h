@@ -69,6 +69,7 @@ void func_Tgw(const char *);
 void func_scandevs(const char *);
 void func_States(const char *);
 void func_Command(const char *);
+void func_Current(const char *);
 
 	/* Devices' */
 struct Command {
@@ -95,4 +96,9 @@ extern struct Device {
 } *devices_list;
 
 extern struct Device *findDevice(struct substring *);
+extern struct Device *findDeviceByURL(const char *);
+
+	/* Printing helper */
+struct json_object;
+extern void printObject(struct json_object *, unsigned int nbre_tab);
 #endif

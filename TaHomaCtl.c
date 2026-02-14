@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.11"
+#define VERSION "0.12"
 
 	/* **
 	 * Configuration
@@ -267,6 +267,7 @@ struct _commands {
 	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", true, NULL },
 	{ "States", func_States, "<device name> [state name] query the states of a device", true, state_generator },
 	{ "Command", func_Command, "<device name> <command name> <argument> send a command to a device", true, action_generator },
+	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", false, NULL },
 
 	{ NULL, NULL, "Miscs", false, NULL},
 	{ "#", NULL, "Comment, ignored line", false, NULL},
