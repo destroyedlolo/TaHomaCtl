@@ -168,7 +168,7 @@ static void func_Devs(const char *arg){
 			printf("%s : %s\n", dev->label, dev->url);
 			device_info(dev);
 		} else
-			printf("*W* Device \"%.*s\" not found\n", devname.len, devname.s);
+			printf("*W* Device \"%.*s\" not found\n", (int)devname.len, devname.s);
 	}
 }
 
@@ -304,14 +304,14 @@ static struct _commands *findCommand(struct substring *cmd){
 
 static void exec(struct substring *cmd, const char *arg){
 	if(trace && *cmd->s != '#')
-		printf("> %.*s\n", cmd->len, cmd->s);
+		printf("> %.*s\n", (int)cmd->len, cmd->s);
 
 	struct _commands *c = findCommand(cmd);
 	if(c){
 		if(c->func)
 			c->func(arg);
 	} else
-		printf("*E* Unknown command \"%.*s\" : type '?' for list of known directives\n", cmd->len, cmd->s);
+		printf("*E* Unknown command \"%.*s\" : type '?' for list of known directives\n", (int)cmd->len, cmd->s);
 }
 
 static void execline(char *l){

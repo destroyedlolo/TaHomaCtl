@@ -109,14 +109,15 @@ void printObject(struct json_object *obj, unsigned int nbre_tab){
 			}
 		}
 		break;
-	case json_type_array:
-		int n = json_object_array_length(obj);
-		gentab(nbre_tab); puts("[");
-		for(int i = 0; i < n; ++i){
-			struct json_object *sub = json_object_array_get_idx(obj, i);
-			printObject(sub, nbre_tab+1);
+	case json_type_array: {
+			int n = json_object_array_length(obj);
+			gentab(nbre_tab); puts("[");
+			for(int i = 0; i < n; ++i){
+				struct json_object *sub = json_object_array_get_idx(obj, i);
+				printObject(sub, nbre_tab+1);
+			}
+			gentab(nbre_tab); puts("]");
 		}
-		gentab(nbre_tab); puts("]");
 		break;
 	case json_type_string:
 		gentab(nbre_tab);
