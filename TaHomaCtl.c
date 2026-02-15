@@ -215,6 +215,18 @@ static void func_trace(const char *arg){
 		puts(trace ? "Traces enabled" : "Traces disabled");
 }
 
+static void func_debug(const char *arg){
+	if(arg){
+		if(!strcmp(arg, "on"))
+			debug = true;
+		else if(!strcmp(arg, "off"))
+			debug = false;
+		else
+			fputs("*E* debug accepts only 'on' and 'off'\n", stderr);
+	} else
+		puts(debug ? "Debug enabled" : "Debug disabled");
+}
+
 static void func_timeout(const char *arg){
 	if(arg){
 		timeout = atol(arg);
@@ -261,6 +273,7 @@ struct _commands {
 	{ NULL, NULL, "Verbosity", false},
 	{ "verbose", func_verbose, "[on|off|more] Be verbose", false, NULL},
 	{ "trace", func_trace, "[on|off|] Trace every commands", false, NULL},
+	{ "debug", func_debug, "[on|off] enable debug messages", false, NULL},
 
 	{ NULL, NULL, "Interacting", false, NULL},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration", false, NULL},
