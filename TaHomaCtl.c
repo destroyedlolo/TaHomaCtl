@@ -151,7 +151,7 @@ static void device_info(struct Device *dev){
 		printf("\t\t%s\n", state->state);
 }
 
-static void func_Devs(const char *arg){
+static void func_NDevs(const char *arg){
 	if(!arg){	/* List all devices */
 		for(struct Device *dev = devices_list; dev; dev = dev->next){
 			printf("%s : %s\n", dev->label, dev->url);
@@ -262,8 +262,6 @@ struct _commands {
 	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number", false, NULL},
 	{ "TaHoma_token", func_token, "[value] indicate application token", false, NULL},
 	{ "timeout", func_timeout, "[value] specify API call timeout (seconds)", false, NULL},
-	{ "scan_TaHoma", func_scan, "Look for Tahoma's ZeroConf advertising", false, NULL},
-	{ "scan_Devices", func_scandevs, "Query and store attached devices", false, NULL},
 	{ "status", func_status, "Display current connection informations", false, NULL},
 
 	{ NULL, NULL, "Scripting", false, NULL},
@@ -275,12 +273,18 @@ struct _commands {
 	{ "trace", func_trace, "[on|off|] Trace every commands", false, NULL},
 	{ "debug", func_debug, "[on|off] enable debug messages", false, NULL},
 
-	{ NULL, NULL, "Interacting", false, NULL},
+	{ NULL, NULL, "Interacting with the TaHoma", false, NULL},
+	{ "scan_TaHoma", func_scan, "Look for Tahoma's ZeroConf advertising", false, NULL},
+	{ "scan_Devices", func_scandevs, "Query and store attached devices", false, NULL},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration", false, NULL},
-	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", true, NULL },
-	{ "States", func_States, "<device name> [state name] query the states of a device", true, state_generator },
-	{ "Command", func_Command, "<device name> <command name> <argument> send a command to a device", true, action_generator },
-	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", false, NULL },
+
+	{ NULL, NULL, "Interacting by device's URL", false, NULL},
+
+	{ NULL, NULL, "Interacting by device's name", false, NULL},
+	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", true, NULL },
+	{ "NStates", func_NStates, "<device name> [state name] query the states of a device", true, state_generator },
+	{ "NCommand", func_NCommand, "<device name> <command name> <argument> send a command to a device", true, action_generator },
+	{ "NCurrent", func_NCurrent, "Get action group executions currently running and launched from the local API", false, NULL },
 
 	{ NULL, NULL, "Miscs", false, NULL},
 	{ "#", NULL, "Comment, ignored line", false, NULL},

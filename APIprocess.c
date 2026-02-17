@@ -422,7 +422,7 @@ void func_scandevs(const char *arg){
 	freeResponse(&buff);
 }
 
-void func_States(const char *arg){
+void func_NStates(const char *arg){
 	if(!arg){
 		fputs("*E* States is expecting a device's name.\n", stderr);
 		return;
@@ -509,7 +509,7 @@ void func_States(const char *arg){
 	freeResponse(&buff);
 }
 
-void func_Command(const char *arg){
+void func_NCommand(const char *arg){
 	if(!arg){
 		fputs("*E* Command is expecting at last a device's name.\n", stderr);
 		return;
@@ -586,7 +586,7 @@ void func_Command(const char *arg){
 	free(cmd);
 }
 
-void func_Current(const char *arg){
+void func_NCurrent(const char *arg){
 	if(arg){
 		fputs("*E* Devices doesn't expect an argument.\n", stderr);
 		return;
