@@ -348,7 +348,7 @@ TaHomaCtl > Current
 	description : "Execution : TaHomaCtl"
 	owner: local	state: IN_PROGRESS	type: MANUAL_CONTROL
 	Started on Sat Feb 14 20:05:50 2026
-		Device : IO_(10069463) 'io://2095-0445-1705/10069463'
+		Device : IO_(10069463) 'io://xxxx-xxxx-xxxx/10069463'
 		[
 			name :
 				"discoverSomfyUnsetActuators"
