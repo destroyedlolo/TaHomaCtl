@@ -315,6 +315,15 @@ struct Device *findDeviceByURL(const char *url){
 	return NULL;
 }
 
+struct Device *findDeviceByURLSS(struct substring *url){
+	for(struct Device *r = devices_list; r; r = r->next){
+		if(!substringcmp(url, r->url))
+			return r;
+	}
+
+	return NULL;
+}
+
 	/*
 	 * User commands
 	 */

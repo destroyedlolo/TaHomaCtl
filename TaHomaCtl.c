@@ -151,7 +151,7 @@ static void device_info(struct Device *dev){
 		printf("\t\t%s\n", state->state);
 }
 
-static void func_NDevs(const char *arg){
+static void internal_Devs(const char *arg, bool url){
 	if(!arg){	/* List all devices */
 		for(struct Device *dev = devices_list; dev; dev = dev->next){
 			printf("%s : %s\n", dev->label, dev->url);
@@ -163,13 +163,21 @@ static void func_NDevs(const char *arg){
 		const char *unused;
 
 		extractTokenSub(&devname, arg, &unused);
-		dev = findDevice(&devname);
+		dev = url ?  findDeviceByURLSS(&devname) : findDevice(&devname);
 		if(dev){
 			printf("%s : %s\n", dev->label, dev->url);
 			device_info(dev);
 		} else
 			printf("*W* Device \"%.*s\" not found\n", (int)devname.len, devname.s);
 	}
+}
+
+static void func_Devs(const char *arg){
+	internal_Devs(arg, true);
+}
+
+static void func_NDevs(const char *arg){
+	internal_Devs(arg, false);
 }
 
 static void func_history(const char *arg){
@@ -279,6 +287,7 @@ struct _commands {
 	{ "Gateway", func_Tgw, "Query your gateway own configuration", false, NULL},
 
 	{ NULL, NULL, "Interacting by device's URL", false, NULL},
+	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", true, NULL },
 
 	{ NULL, NULL, "Interacting by device's name", false, NULL},
 	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", true, NULL },

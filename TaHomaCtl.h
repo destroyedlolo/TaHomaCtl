@@ -97,6 +97,7 @@ extern struct Device {
 
 extern struct Device *findDevice(struct substring *);
 extern struct Device *findDeviceByURL(const char *);
+extern struct Device *findDeviceByURLSS(struct substring *);
 
 	/* Printing helper */
 struct json_object;
