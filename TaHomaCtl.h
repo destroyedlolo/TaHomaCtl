@@ -69,7 +69,7 @@ void func_Tgw(const char *);
 void func_scandevs(const char *);
 void func_NStates(const char *);
 void func_NCommand(const char *);
-void func_NCurrent(const char *);
+void func_Current(const char *);
 
 	/* Devices' */
 struct Command {

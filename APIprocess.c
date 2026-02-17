@@ -595,9 +595,9 @@ void func_NCommand(const char *arg){
 	free(cmd);
 }
 
-void func_NCurrent(const char *arg){
+void func_Current(const char *arg){
 	if(arg){
-		fputs("*E* Devices doesn't expect an argument.\n", stderr);
+		fputs("*E* Current doesn't expect an argument.\n", stderr);
 		return;
 	}
 

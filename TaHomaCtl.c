@@ -261,46 +261,50 @@ struct _commands {
 		 *	commands expecting a device as first element.
 		 *	The second one is linked with the device's content.
 		 */
-	const bool devarg;		/* 1st argument is a device (enable autocompletion) */
+	enum _arg_t {
+		ARG_NO = 0,	/* No argument */
+		ARG_NAME,	/* Device name */
+		ARG_URL		/* URL */
+	} devarg;		/* 1st argument is a device (enable autocompletion) */
 	char *(*autofunc)(const char *, int);	/* Function to be used as 2nd argument completion */
 } Commands[] = {
-	{ NULL, NULL, "TaHoma's Configuration", false, NULL},
-	{ "TaHoma_host", func_THost, "[name] set or display TaHoma's host", false, NULL},
-	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address", false, NULL},
-	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number", false, NULL},
-	{ "TaHoma_token", func_token, "[value] indicate application token", false, NULL},
-	{ "timeout", func_timeout, "[value] specify API call timeout (seconds)", false, NULL},
-	{ "status", func_status, "Display current connection informations", false, NULL},
+	{ NULL, NULL, "TaHoma's Configuration", ARG_NO, NULL},
+	{ "TaHoma_host", func_THost, "[name] set or display TaHoma's host", ARG_NO, NULL},
+	{ "TaHoma_address", func_TAddr, "[ip] set or display TaHoma's ip address", ARG_NO, NULL},
+	{ "TaHoma_port", func_TPort, "[num] set or display TaHoma's port number", ARG_NO, NULL},
+	{ "TaHoma_token", func_token, "[value] indicate application token", ARG_NO, NULL},
+	{ "timeout", func_timeout, "[value] specify API call timeout (seconds)", ARG_NO, NULL},
+	{ "status", func_status, "Display current connection informations", ARG_NO, NULL},
 
-	{ NULL, NULL, "Scripting", false, NULL},
-	{ "save_config", func_save, "<file> save current configuration to the given file", false, NULL},
-	{ "script", func_script, "<file> execute the file", false, NULL},
+	{ NULL, NULL, "Scripting", ARG_NO, NULL},
+	{ "save_config", func_save, "<file> save current configuration to the given file", ARG_NO, NULL},
+	{ "script", func_script, "<file> execute the file", ARG_NO, NULL},
 
-	{ NULL, NULL, "Verbosity", false},
-	{ "verbose", func_verbose, "[on|off|more] Be verbose", false, NULL},
-	{ "trace", func_trace, "[on|off|] Trace every commands", false, NULL},
-	{ "debug", func_debug, "[on|off] enable debug messages", false, NULL},
+	{ NULL, NULL, "Interacting with the TaHoma", ARG_NO, NULL},
+	{ "scan_TaHoma", func_scan, "Look for Tahoma's ZeroConf advertising", ARG_NO, NULL},
+	{ "scan_Devices", func_scandevs, "Query and store attached devices", ARG_NO, NULL},
+	{ "Gateway", func_Tgw, "Query your gateway own configuration", ARG_NO, NULL},
+	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", ARG_NO, NULL },
 
-	{ NULL, NULL, "Interacting with the TaHoma", false, NULL},
-	{ "scan_TaHoma", func_scan, "Look for Tahoma's ZeroConf advertising", false, NULL},
-	{ "scan_Devices", func_scandevs, "Query and store attached devices", false, NULL},
-	{ "Gateway", func_Tgw, "Query your gateway own configuration", false, NULL},
+	{ NULL, NULL, "Interacting by device's URL", ARG_NO, NULL},
+	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", ARG_URL, NULL },
 
-	{ NULL, NULL, "Interacting by device's URL", false, NULL},
-	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", true, NULL },
+	{ NULL, NULL, "Interacting by device's name", ARG_NO, NULL},
+	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", ARG_NAME, NULL },
+	{ "NStates", func_NStates, "<device name> [state name] query the states of a device", ARG_NAME, state_generator },
+	{ "NCommand", func_NCommand, "<device name> <command name> <argument> send a command to a device", ARG_NAME, action_generator },
 
-	{ NULL, NULL, "Interacting by device's name", false, NULL},
-	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", true, NULL },
-	{ "NStates", func_NStates, "<device name> [state name] query the states of a device", true, state_generator },
-	{ "NCommand", func_NCommand, "<device name> <command name> <argument> send a command to a device", true, action_generator },
-	{ "NCurrent", func_NCurrent, "Get action group executions currently running and launched from the local API", false, NULL },
+	{ NULL, NULL, "Verbosity", ARG_NO, NULL},
+	{ "verbose", func_verbose, "[on|off|more] Be verbose", ARG_NO, NULL},
+	{ "trace", func_trace, "[on|off|] Trace every commands", ARG_NO, NULL},
+	{ "debug", func_debug, "[on|off] enable debug messages", ARG_NO, NULL},
 
-	{ NULL, NULL, "Miscs", false, NULL},
-	{ "#", NULL, "Comment, ignored line", false, NULL},
-	{ "?", func_qmark, "List available commands", false, NULL},
-	{ "history", func_history, "List command line history", false, NULL},
-	{ "Quit", func_quit, "See you", false, NULL},
-	{ NULL, NULL, NULL, false, NULL}
+	{ NULL, NULL, "Miscs", ARG_NO, NULL},
+	{ "#", NULL, "Comment, ignored line", ARG_NO, NULL},
+	{ "?", func_qmark, "List available commands", ARG_NO, NULL},
+	{ "history", func_history, "List command line history", ARG_NO, NULL},
+	{ "Quit", func_quit, "See you", ARG_NO, NULL},
+	{ NULL, NULL, NULL, ARG_NO, NULL}
 };
 
 static void func_qmark(const char *){
@@ -417,6 +421,26 @@ static char *dev_generator(const char *text, int state){
     return((char *)NULL);
 }
 
+static char *URL_generator(const char *text, int state){
+	static struct Device *dev;
+	static int len;
+
+	if(!state){
+		dev = devices_list;
+		len = strlen(text);
+	}
+
+	while(dev){
+		struct Device *cur = dev;
+		dev = dev->next;
+
+		if(!strncmp(cur->url, text, len))
+			return(strdup(cur->url));
+	}
+
+    return((char *)NULL);
+}
+
 static char *state_generator(const char *text, int state){
 	static struct State *st;
 	static int len;
@@ -490,9 +514,12 @@ char **command_completion(const char *text, int start, int end){
 				inspace = false;
 		}
 
-		if(argnum == 1)
-			return rl_completion_matches(text, dev_generator);
-		else if(c->autofunc){
+		if(argnum == 1){		/* Looking for a device */
+			if(c->devarg == ARG_NAME)
+				return rl_completion_matches(text, dev_generator);
+			else	/* ARG_URL */
+				return rl_completion_matches(text, URL_generator);
+		} else if(c->autofunc){	/* second argument */
 			struct substring devname;
 			const char *unused;
 
