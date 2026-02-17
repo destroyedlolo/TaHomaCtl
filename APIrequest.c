@@ -162,6 +162,8 @@ void callAPI(const char *api, const char *post, struct ResponseBuffer *buff){
 
 	if(debug)
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	else
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 
 	spent(false);
 	int res = curl_easy_perform(curl);

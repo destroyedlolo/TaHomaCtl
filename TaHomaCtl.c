@@ -287,7 +287,8 @@ struct _commands {
 	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", ARG_NO, NULL },
 
 	{ NULL, NULL, "Interacting by device's URL", ARG_NO, NULL},
-	{ "Device", func_Devs, "[name] display device \"name\" information or the devices list", ARG_URL, NULL },
+	{ "Device", func_Devs, "[URL] display device \"URL\" information or the devices list", ARG_URL, NULL },
+	{ "States", func_States, "<device URL> [state name] query the states of a device", ARG_URL, state_generator },
 
 	{ NULL, NULL, "Interacting by device's name", ARG_NO, NULL},
 	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", ARG_NAME, NULL },

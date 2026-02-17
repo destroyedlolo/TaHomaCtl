@@ -431,12 +431,7 @@ void func_scandevs(const char *arg){
 	freeResponse(&buff);
 }
 
-void func_NStates(const char *arg){
-	if(!arg){
-		fputs("*E* States is expecting a device's name.\n", stderr);
-		return;
-	}
-
+static void internal_States(const char *arg, bool aurl){
 	struct substring devname, name;
 	const char *next;
 
@@ -450,7 +445,7 @@ void func_NStates(const char *arg){
 		extractTokenSub(&name, next, &unused);
 	}
 
-	struct Device *dev = findDevice(&devname);
+	struct Device *dev = aurl ?  findDeviceByURLSS(&devname) : findDevice(&devname);
 	if(!dev){
 		fputs("*E* Device not found.\n", stderr);
 		return;
@@ -516,6 +511,24 @@ void func_NStates(const char *arg){
 		fputs("*W* Empty response", stderr);
 
 	freeResponse(&buff);
+}
+
+void func_States(const char *arg){
+	if(!arg){
+		fputs("*E* States is expecting a device's URL.\n", stderr);
+		return;
+	}
+
+	internal_States(arg, true);
+}
+
+void func_NStates(const char *arg){
+	if(!arg){
+		fputs("*E* NStates is expecting a device's name.\n", stderr);
+		return;
+	}
+
+	internal_States(arg, false);
 }
 
 void func_NCommand(const char *arg){
