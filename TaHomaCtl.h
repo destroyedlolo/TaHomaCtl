@@ -69,6 +69,7 @@ void func_Tgw(const char *);
 void func_scandevs(const char *);
 void func_States(const char *);
 void func_NStates(const char *);
+void func_Command(const char *);
 void func_NCommand(const char *);
 void func_Current(const char *);
 

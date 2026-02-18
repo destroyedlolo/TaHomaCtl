@@ -531,19 +531,14 @@ void func_NStates(const char *arg){
 	internal_States(arg, false);
 }
 
-void func_NCommand(const char *arg){
-	if(!arg){
-		fputs("*E* Command is expecting at last a device's name.\n", stderr);
-		return;
-	}
-
+void internal_Command(const char *arg, bool aurl){
 	struct substring devname, command;
 	const char *next;
 
 		/* Extract the device name */
 	extractTokenSub(&devname, arg, &next);
 
-	struct Device *dev = findDevice(&devname);
+	struct Device *dev = aurl ?  findDeviceByURLSS(&devname) : findDevice(&devname);
 	if(!dev){
 		fputs("*E* Device not found.\n", stderr);
 		return;
@@ -606,6 +601,24 @@ void func_NCommand(const char *arg){
 
 	freeResponse(&buff);
 	free(cmd);
+}
+
+void func_Command(const char *arg){
+	if(!arg){
+		fputs("*E* Command is expecting a device's URL.\n", stderr);
+		return;
+	}
+
+	internal_Command(arg, true);
+}
+
+void func_NCommand(const char *arg){
+	if(!arg){
+		fputs("*E* Command is expecting at last a device's name.\n", stderr);
+		return;
+	}
+
+	internal_Command(arg, false);
 }
 
 void func_Current(const char *arg){

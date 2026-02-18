@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.12"
+#define VERSION "0.13"
 
 	/* **
 	 * Configuration
@@ -289,11 +289,12 @@ struct _commands {
 	{ NULL, NULL, "Interacting by device's URL", ARG_NO, NULL},
 	{ "Device", func_Devs, "[URL] display device \"URL\" information or the devices list", ARG_URL, NULL },
 	{ "States", func_States, "<device URL> [state name] query the states of a device", ARG_URL, state_generator },
+	{ "Command", func_Command, "<device URL> <command name> [argument] send a command to a device", ARG_NAME, action_generator },
 
 	{ NULL, NULL, "Interacting by device's name", ARG_NO, NULL},
 	{ "NDevice", func_NDevs, "[name] display device \"name\" information or the devices list", ARG_NAME, NULL },
 	{ "NStates", func_NStates, "<device name> [state name] query the states of a device", ARG_NAME, state_generator },
-	{ "NCommand", func_NCommand, "<device name> <command name> <argument> send a command to a device", ARG_NAME, action_generator },
+	{ "NCommand", func_NCommand, "<device name> <command name> [argument] send a command to a device", ARG_NAME, action_generator },
 
 	{ NULL, NULL, "Verbosity", ARG_NO, NULL},
 	{ "verbose", func_verbose, "[on|off|more] Be verbose", ARG_NO, NULL},
@@ -445,6 +446,9 @@ static char *URL_generator(const char *text, int state){
 static char *state_generator(const char *text, int state){
 	static struct State *st;
 	static int len;
+
+if(!dev)
+	puts("No DEV");
 
 	if(!state){
 		st = dev->states;
