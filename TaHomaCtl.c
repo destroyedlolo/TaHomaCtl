@@ -447,8 +447,8 @@ static char *state_generator(const char *text, int state){
 	static struct State *st;
 	static int len;
 
-if(!dev)
-	puts("No DEV");
+	if(!dev)
+    	return((char *)NULL);
 
 	if(!state){
 		st = dev->states;
@@ -469,6 +469,9 @@ if(!dev)
 static char *action_generator(const char *text, int state){
 	static struct Command *com;
 	static int len;
+
+	if(!dev)
+    	return((char *)NULL);
 
 	if(!state){
 		com = dev->commands;
@@ -529,7 +532,7 @@ char **command_completion(const char *text, int start, int end){
 			const char *unused;
 
 			extractTokenSub(&devname, arg, &unused);
-			dev = findDevice(&devname);
+			dev = (c->devarg == ARG_URL) ?  findDeviceByURLSS(&devname) : findDevice(&devname);
 			return rl_completion_matches(text, c->autofunc);
 		}
 	}

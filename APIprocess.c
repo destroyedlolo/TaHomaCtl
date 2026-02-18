@@ -485,7 +485,10 @@ static void internal_States(const char *arg, bool aurl){
 				int type = getObjInt(obj, OBJPATH( "type", NULL ));
 
 				switch(type){
-				case 1:	/* Number */
+				case 1:	/* integer */
+					printf("%d\n", getObjInt(obj, OBJPATH( "value", NULL ) ));
+					break;
+				case 2:	/* Number */
 					printf("%lf\n", getObjNumber(obj, OBJPATH( "value", NULL ) ));
 					break;
 				case 3:	/* String */
@@ -494,11 +497,11 @@ static void internal_States(const char *arg, bool aurl){
 				case 6:	/* Boolean */
 					printf("%s\n", getObjBool(obj, OBJPATH( "value", NULL ) ) ? "true":"false");
 				case 10:
-					puts("[Array]");
-					break;
 				case 11:
-					puts("{Object}");
+					puts("");
+					printObject(getObj(obj, OBJPATH( "value", NULL )), 2);
 					break;
+					;
 				default:
 					printf("Unknown type (%d)\n", type);
 				}
