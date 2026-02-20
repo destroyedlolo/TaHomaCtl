@@ -1,7 +1,7 @@
 TaHomaCtl
 =====
 
-**TaHomaCtl** is a lightweight command-line interface (CLI) designed to control Somfy TaHoma home automation gateways (Switch, Connexoon, etc.) strictly locally.
+**TaHomaCtl** is a lightweight command-line interface (CLI) designed to control Somfy TaHoma home automation gateways (Switch, Connexoon, etc.) using the [Local API](https://github.com/Somfy-Developer/Somfy-TaHoma-Developer-Mode).
 
 It is ideal for integration into shell scripts, crontabs, home automation backends or discover your configuration's internals.
 
@@ -28,8 +28,9 @@ It is ideal for integration into shell scripts, crontabs, home automation backen
 
 # 🚀 Key Features
 
+* **Investigate** devices linked to your TaHoma and exposed states and commands.
 * **State Monitoring**: Retrieve real-time status and sensor data from your equipment.
-* **Control devices**: Send command to actuators
+* **Control devices**: Send commands to actuators.
 * **Low Footprint**: Optimized code, perfect suited for resource limited computers like single-board Raspberry Pi, Orange Pi, BananaPI, etc.
 
 ## What next ?
@@ -49,8 +50,8 @@ dangerous actions : it's only a tool to interact with the Overkiz's public local
 In other words, it has no knowlegde about the devices you're steering.
 The benefit is you can control any devices without having to teach TaHomaCtl about it.
 
-As a consequence, it can't interact stuffs managed at Somfy's cloud side (like *Somfy Protect* or *Cloud2Cloud* processes).  
-The solution may be to use the Overkiz's "*end user cloud public API*". As my smart home solution aims to be as local as possible, it's not currently planned for integration in TaHomaCtl.
+As a consequence, it can't interact stuffs managed at Somfy's cloud side (like *Somfy Protect* or *Cloud2Cloud* processes).
+As my smart home solution aims to be as local as possible, it's not planned to integrate the "*end user cloud public API*".
 
 > [!WARNING]
 > The TaHoma is very slow to respond to some requests at first :
@@ -79,7 +80,7 @@ make
 
 # 📖 Usages
 
-## Shell parameters
+## Launching TaHomaCtrl (Shell parameters)
 
 Use online help for uptodate list of supported arguments.
 
@@ -114,7 +115,7 @@ Misc :
 * **-U** : don't try to enforce security SSL chaine. Usefull if you haven't imported Overkiz's root CA.
 * **-N** : by default, TaHomaCtl will try to source `~/.tahomactl` at startup, which aims to contain TaHoma's connectivity information. This argument prevents it.
 
-## Exchanging with your TaHoma
+## TaHomaCtl interactive mode
 
 Inside the application, you will benefit of GNU's readline features :
 - history
@@ -134,8 +135,6 @@ TaHoma's Configuration
 'TaHoma_port' : [num] set or display TaHoma's port number
 'TaHoma_token' : [value] indicate application token
 'timeout' : [value] specify API call timeout (seconds)
-'scan_TaHoma' : Look for Tahoma's ZeroConf advertising
-'scan_Devices' : Query and store attached devices
 'status' : Display current connection informations
 
 Scripting
@@ -143,18 +142,30 @@ Scripting
 'save_config' : <file> save current configuration to the given file
 'script' : <file> execute the file
 
+Interacting with the TaHoma
+---------------------------
+'scan_TaHoma' : Look for Tahoma's ZeroConf advertising
+'scan_Devices' : Query and store attached devices
+'Gateway' : Query your gateway own configuration
+'Current' : Get action group executions currently running and launched from the local API
+
+Interacting by device's URL
+---------------------------
+'Device' : [URL] display device "URL" information or the devices list
+'States' : <device URL> [state name] query the states of a device
+'Command' : <device URL> <command name> [argument] send a command to a device
+
+Interacting by device's name
+----------------------------
+'NDevice' : [name] display device "name" information or the devices list
+'NStates' : <device name> [state name] query the states of a device
+'NCommand' : <device name> <command name> [argument] send a command to a device
+
 Verbosity
 ---------
 'verbose' : [on|off|more] Be verbose
 'trace' : [on|off|] Trace every commands
-
-Interacting
------------
-'Gateway' : Query your gateway own configuration
-'Device' : [name] display device "name" information or the devices list
-'States' : <device name> [state name] query the states of a device
-'Command' : <device name> <command name> <argument> send a command to a device
-'Current' : Get action group executions currently running and launched from the local API
+'debug' : [on|off] enable debug messages
 
 Miscs
 -----
@@ -164,7 +175,146 @@ Miscs
 'Quit' : See you
 ```
 
-### Discoverying your TaHoma
+# 📜 Use cases
+
+## Discoverying and configuring your TaHoma
+
+### Scanning your network
+The first step is to configure TaHomaCtl about your gateway using `scan_TaHoma`.  
+`save_config` will save found information in the given file.
+
+```
+$ ./TaHomaCtl -Uv
+*W* SSL chaine not enforced (unsafe mode)
+TaHomaCtl > scan_TaHoma 
+*I* Service 'gateway-xxxx-xxxx-xxxx' of type '_kizboxdev._tcp' in domain 'local':
+TaHomaCtl > save_config .tahomactl
+TaHomaCtl > Quit
+```
+
+> [!TIP]
+> Be patient : the TaHoma doesn't advertise often and react slowly to mDNS response.
+
+For next utilization, you can avoid network scanning by providing yourself your gateway information as below :
+
+### Configure from the shell command line argument
+
+[See above](#what-next--)
+
+### Using directives
+
+Inline commands are `TaHoma_host`, `TaHoma_address`, `TaHoma_port`.  
+Don't forget, we did use `save_config` to create a script containing all the needed :smirk:.
+If you saved it as "**.tahomactl**" in your home directory, it will be automatically loaded at startup.
+
+> [!CAUTION]
+> Don't forget to indicate the bearer code using `TaHoma_token`
+
+While `status` will give you the current connection setting,
+`Gateway` will query your TaHoma about its own configuration.
+
+```
+$ ./TaHomaCtl -U
+TaHomaCtl > status
+*I* Connection :
+	Tahoma's host : gateway-xxxx-xxxx-xxxx.local
+	Tahoma's IP : 192.168.0.30
+	Tahoma's port : 8443
+	Token : set
+	SSL chaine : not checked (unsafe)
+*I* 0 Stored device 
+TaHomaCtl > Gateway 
+gatewayId : xxxx-xxxx-xxxx
+Connected : OK
+protocolVersion : 2026.1.3-3
+TaHomaCtl > 
+```
+
+## Querying attached devices
+
+`scan_Devices` will read from your TaHoma attached devices.
+
+```
+$ ./TaHomaCtl -Uv
+*W* SSL chaine not enforced (unsafe mode)
+TaHomaCtl > scan_Devices 
+*I* 15 devices
+```
+
+> [!CAUTION]
+> This request is very resource-intensive for the TaHoma, especially if you have many connected devices.
+> It is therefore advisable to use it as infrequently as possible, generally only once at startup.
+
+**Devices** will display stored devices.
+
+```
+TaHomaCtl > Device 
+TaHomaCtl > Device
+test_air : zigbee://xxxx-xxxx-xxxx/58849/1#1
+test_air : zigbee://xxxx-xxxx-xxxx/58849/1#2
+test_air : zigbee://xxxx-xxxx-xxxx/58849/3
+test_air : zigbee://xxxx-xxxx-xxxx/58849/1#4
+Deco : io://xxxx-xxxx-xxxx/5335270
+Porte_Chat : rts://xxxx-xxxx-xxxx/16774417
+IO_(10069463) : io://xxxx-xxxx-xxxx/10069463
+test_air : zigbee://xxxx-xxxx-xxxx/58849/0
+ZIGBEE_(0/0) : zigbee://xxxx-xxxx-xxxx/0/0
+Boiboite : internal://xxxx-xxxx-xxxx/pod/0
+INTERNAL_(wifi/0) : internal://xxxx-xxxx-xxxx/wifi/0
+test_air : zigbee://xxxx-xxxx-xxxx/58849/1#3
+ZIGBEE_(0/242) : zigbee://xxxx-xxxx-xxxx/0/242
+ZIGBEE_(0/1) : zigbee://xxxx-xxxx-xxxx/0/1
+ZIGBEE_(65535) : zigbee://xxxx-xxxx-xxxx/65535
+```
+
+Where you can see for each of them :
+- the **name** as configured in **TaHoma by Somfy** application
+- the **URL**
+
+As you can see above, some sensors may be discovered multiple times :
+here, **test_air** is a Zigbee multisensor, and each of them is seen as a different device with the same name.
+Only the URL can discriminate them.
+
+```
+TaHomaCtl > Device Deco 
+Deco : io://xxxx-xxxx-xxxx/5335270
+	Commands
+		setName (1 arg)
+		startIdentify (0 arg)
+		unpairOneWayController (1 arg)
+		toggle (0 arg)
+		onWithTimer (1 arg)
+		setOnOff (1 arg)
+		getName (0 arg)
+		off (0 arg)
+		on (0 arg)
+		setConfigState (1 arg)
+		advancedRefresh (1 arg)
+		pairOneWayController (1 arg)
+		identify (0 arg)
+		delayedStopIdentify (1 arg)
+		stopIdentify (0 arg)
+		unpairAllOneWayControllers (0 arg)
+		addLockLevel (1 arg)
+		removeLockLevel (1 arg)
+		resetLockLevels (0 arg)
+		wink (1 arg)
+	States
+		core:RSSILevelState
+		core:DiscreteRSSILevelState
+		core:NameState
+		core:OnOffState
+		io:PriorityLockOriginatorState
+		io:PriorityLockLevelState
+		core:PriorityLockTimerState
+		core:CommandLockLevelsState
+		core:StatusState
+```
+
+----
+### Scan your network
+
+`scan TaHoma` will find out your TaHoma based on its mDNS (a.k.a Avahi) advertising.
 
 * **scan_TaHoma** will try to find out your TaHoma,
 * **scan_Devices** will read from your TaHoma discovered devices,
@@ -225,10 +375,6 @@ TaHomaCtl > status
 TaHomaCtl > save_config /tmp/tahoma
 TaHomaCtl > 
 ```
-
-> [!TIP]
-> As said previously, the TaHoma doesn't advertise often and react slowly to mDNS response.
-> Be patient.
 
 ### Discovering your devices
 
