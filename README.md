@@ -14,13 +14,19 @@ It is ideal for integration into shell scripts, crontabs, home automation backen
   * [Prerequisites](#prerequisites)
   * [Compilation](#compilation)
 - [📖 Usages](#---usages)
-  * [Shell parameters](#shell-parameters)
-  * [Exchanging with your TaHoma](#exchanging-with-your-tahoma)
-    + [Discoverying your TaHoma](#discoverying-your-tahoma)
-    + [Discovering your devices](#discovering-your-devices)
-    + [Querying a device](#querying-a-device)
+  * [Launching TaHomaCtrl (Shell parameters)](#launching-tahomactrl--shell-parameters-)
+  * [TaHomaCtl interactive mode](#tahomactl-interactive-mode)
+- [📜 Use cases](#---use-cases)
+  * [Discoverying and configuring your TaHoma](#discoverying-and-configuring-your-tahoma)
+    + [Scanning your network](#scanning-your-network)
+    + [Configure from the shell command line argument](#configure-from-the-shell-command-line-argument)
+    + [Using directives](#using-directives)
+  * [Querying attached devices](#querying-attached-devices)
+  * [Addressing devices](#addressing-devices)
+    + [Device's information](#device-s-information)
+    + [Querying a device state](#querying-a-device-state)
     + [Steering a device](#steering-a-device)
-- [Why TaHomaCtl ?](#why-tahomactl--)
+- [💡 Why TaHomaCtl ?](#---why-tahomactl--)
   * [Integration in my own automation solution](#integration-in-my-own-automation-solution)
   * [Vibe coding testing](#vibe-coding-testing)
 
@@ -36,7 +42,7 @@ It is ideal for integration into shell scripts, crontabs, home automation backen
 ## What next ?
 
 Next version :
-* Steering from CLI arguments in addition to the actual interactive mode for a better scripting capabilities.
+* **Steering from CLI arguments** in addition to the actual interactive mode for a better scripting capabilities.
 
 Probably implemented one day (I don't have the use case yet) :
 * **Scenario Execution**: Trigger your local scenarios instantly.
@@ -199,7 +205,7 @@ For next utilization, you can avoid network scanning by providing yourself your 
 
 ### Configure from the shell command line argument
 
-[See above](#what-next--)
+[See above](#launching-tahomactrl--shell-parameters-)
 
 ### Using directives
 
@@ -245,10 +251,9 @@ TaHomaCtl > scan_Devices
 > This request is very resource-intensive for the TaHoma, especially if you have many connected devices.
 > It is therefore advisable to use it as infrequently as possible, generally only once at startup.
 
-**Devices** will display stored devices.
+`Devices` will display stored devices.
 
 ```
-TaHomaCtl > Device 
 TaHomaCtl > Device
 test_air : zigbee://xxxx-xxxx-xxxx/58849/1#1
 test_air : zigbee://xxxx-xxxx-xxxx/58849/1#2
@@ -275,167 +280,78 @@ As you can see above, some sensors may be discovered multiple times :
 here, **test_air** is a Zigbee multisensor, and each of them is seen as a different device with the same name.
 Only the URL can discriminate them.
 
-```
-TaHomaCtl > Device Deco 
-Deco : io://xxxx-xxxx-xxxx/5335270
-	Commands
-		setName (1 arg)
-		startIdentify (0 arg)
-		unpairOneWayController (1 arg)
-		toggle (0 arg)
-		onWithTimer (1 arg)
-		setOnOff (1 arg)
-		getName (0 arg)
-		off (0 arg)
-		on (0 arg)
-		setConfigState (1 arg)
-		advancedRefresh (1 arg)
-		pairOneWayController (1 arg)
-		identify (0 arg)
-		delayedStopIdentify (1 arg)
-		stopIdentify (0 arg)
-		unpairAllOneWayControllers (0 arg)
-		addLockLevel (1 arg)
-		removeLockLevel (1 arg)
-		resetLockLevels (0 arg)
-		wink (1 arg)
-	States
-		core:RSSILevelState
-		core:DiscreteRSSILevelState
-		core:NameState
-		core:OnOffState
-		io:PriorityLockOriginatorState
-		io:PriorityLockLevelState
-		core:PriorityLockTimerState
-		core:CommandLockLevelsState
-		core:StatusState
-```
+## Addressing devices
 
-----
-### Scan your network
+Devices can be identified by their names or their URLs using dedicated commands as described below.
 
-`scan TaHoma` will find out your TaHoma based on its mDNS (a.k.a Avahi) advertising.
+### Device's information
 
-* **scan_TaHoma** will try to find out your TaHoma,
-* **scan_Devices** will read from your TaHoma discovered devices,
-* Upon success, **status** will show you stored information,
-* you **have to** provide application token (from Somfy's TaHoma application) using **TaHoma_token** command,
-* finally, **save_config** to store all those valuable information. 
-
-As example (notice the **v** enabling the verbose mode):
-```
-./TaHomaCtl -Uv
-*W* SSL chaine not enforced (unsafe mode)
-TaHomaCtl > scan_TaHoma 
-*I* Service 'gateway-xxxx-xxxx-xxxx' of type '_kizboxdev._tcp' in domain 'local':
-	gateway-xxxx-xxxx-xxxx.local:8443 (192.168.0.36)
-	TXT="fw_version=2025.5.5-9" "gateway_pin=xxxx-xxxx-xxxx" "api_version=1"
-	cookie is 0
-	is_local: 0
-	our_own: 0
-	wide_area: 0
-	multicast: 1
-	cached: 1
-TaHomaCtl > scan_Devices 
-*I* HTTP return code : 200
-*I* 5 devices
-*I* IO (10069463) [io:StackComponent]
-	URL : io://xxxx-xxxx-xxxx/10069463
-	Type : 5, subsystemId : 0
-	synced, enabled, available
-		Type: PROTOCOL_GATEWAY
-*I* Deco [io:OnOffIOComponent]
-	URL : io://xxxx-xxxx-xxxx/5335270
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* Boiboite [internal:PodV3Component]
-	URL : internal://xxxx-xxxx-xxxx/pod/0
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* INTERNAL (wifi/0) [internal:WifiComponent]
-	URL : internal://xxxx-xxxx-xxxx/wifi/0
-	Type : 1, subsystemId : 0
-	synced, enabled, available
-		Type: ACTUATOR
-*I* ZIGBEE (65535) [zigbee:TransceiverV3_0Component]
-	URL : zigbee://xxxx-xxxx-xxxx/65535
-	Type : 5, subsystemId : 0
-	synced, enabled, available
-		Type: PROTOCOL_GATEWAY
-TaHomaCtl > status
-*I* Connection :
-	Tahoma's host : gateway-xxxx-xxxx-xxxx.local
-	Tahoma's IP : 192.168.0.30
-	Tahoma's port : 8443
-	Token : set
-	SSL chaine : not checked (unsafe)
-*I* 5 Stored devices
-TaHomaCtl > save_config /tmp/tahoma
-TaHomaCtl > 
-```
-
-### Discovering your devices
-
-**scan_Devices** will query your box for attached devices.
+`Device` and `NDevice` are displaying exposed commands and states of a specific device.
 
 ```
-TaHomaCtl > scan_Devices 
-*I* 6 devices
-```
-> [!CAUTION]
-> This request is very resource-intensive for the TaHoma, especially if you have many connected devices.
-> It is therefore advisable to use it as infrequently as possible, generally only once at startup.
-
-**Devices** will display stored devices.
-
-```
-TaHomaCtl > Device 
-ZIGBEE_(65535) : zigbee://xxxx-xxxx-xxxx/65535
-INTERNAL_(wifi/0) : internal://xxxx-xxxx-xxxx/wifi/0
+TaHomaCtl > Device internal://xxxx-xxxx-xxxx/pod/0
 Boiboite : internal://xxxx-xxxx-xxxx/pod/0
-Deco : io://xxxx-xxxx-xxxx/5335270
-Porte_Chat : rts://xxxx-xxxx-xxxx/16774417
-IO_(10069463) : io://xxxx-xxxx-xxxx/10069463
-TaHomaCtl > Device Deco 
+	Commands
+		activateCalendar (0 arg)
+		setCountryCode (1 arg)
+		update (0 arg)
+		deactivateCalendar (0 arg)
+		refreshPodMode (0 arg)
+		refreshUpdateStatus (0 arg)
+		setCalendar (1 arg)
+		getName (0 arg)
+		setLightingLedPodMode (1 arg)
+		setPodLedOff (0 arg)
+		setPodLedOn (0 arg)
+	States
+		internal:Button3State
+		core:ConnectivityState
+		internal:LightingLedPodModeState
+		internal:Button1State
+		internal:Button2State
+		core:CountryCodeState
+		core:LocalAccessProofState
+		core:LocalIPv4AddressState
+		core:NameState
+TaHomaCtl > NDevice Deco
 Deco : io://xxxx-xxxx-xxxx/5335270
 	Commands
-		setName (1 arg)
-		startIdentify (0 arg)
-		unpairOneWayController (1 arg)
 		toggle (0 arg)
-		onWithTimer (1 arg)
-		setOnOff (1 arg)
-		getName (0 arg)
-		off (0 arg)
-		on (0 arg)
-		setConfigState (1 arg)
+		resetLockLevels (0 arg)
 		advancedRefresh (1 arg)
-		pairOneWayController (1 arg)
-		identify (0 arg)
-		delayedStopIdentify (1 arg)
-		stopIdentify (0 arg)
+		setConfigState (1 arg)
 		unpairAllOneWayControllers (0 arg)
+		onWithTimer (1 arg)
+		wink (1 arg)
 		addLockLevel (1 arg)
 		removeLockLevel (1 arg)
-		resetLockLevels (0 arg)
-		wink (1 arg)
+		setOnOff (1 arg)
+		off (0 arg)
+		on (0 arg)
+		setName (1 arg)
+		identify (0 arg)
+		getName (0 arg)
+		delayedStopIdentify (1 arg)
+		pairOneWayController (1 arg)
+		startIdentify (0 arg)
+		stopIdentify (0 arg)
+		unpairOneWayController (1 arg)
 	States
-		core:RSSILevelState
-		core:DiscreteRSSILevelState
-		core:NameState
 		core:OnOffState
 		io:PriorityLockOriginatorState
 		io:PriorityLockLevelState
 		core:PriorityLockTimerState
+		core:RSSILevelState
+		core:DiscreteRSSILevelState
+		core:NameState
 		core:CommandLockLevelsState
 		core:StatusState
 ```
-### Querying a device
+
+### Querying a device state
 
 ```
-TaHomaCtl > States Deco 
+TaHomaCtl > NStates Deco 
 	core:StatusState : "available"
 	core:CommandLockLevelsState : [Array]
 	core:DiscreteRSSILevelState : "normal"
@@ -449,33 +365,23 @@ TaHomaCtl > States Deco
 It's also possible to query a single state. In such case, only the value is returned.
 
 ```
-$ ./TaHomaCtl -U
-TaHomaCtl > scan_Devices 
-TaHomaCtl > States Deco core:OnOffState
+TaHomaCtl > NStates Deco core:OnOffState
 "off"
-TaHomaCtl > 
 ```
 
-> [!NOTE]
-> **scan_Devices** command here is still important to refresh attached devices internal information.  
-> It would be easy by the way to add a command where the device URI is provided instead of name to ride out it.
+or by its URL
 
-Intesting in scripts :
-
-``` bash
-$ ./TaHomaCtl -Uf - << eoc
-scan_Devices
-States Deco core:OnOffState
-eoc
-"off"
+```
+TaHomaCtl > States zigbee://2095-0445-1705/58849/1#1 core:TemperatureState
+18.300000
 ```
 
 ### Steering a device
 
-**Command** can send an order to a given device, potentially with parameters.
+`Command` and `NCommand` can send an order to a given device, potentially with parameters.
 
 ```
-TaHomaCtl > Command IO_(10069463) discoverSomfyUnsetActuators
+TaHomaCtl > NCommand IO_(10069463) discoverSomfyUnsetActuators
 *I* Successful
 ```
 
@@ -505,7 +411,7 @@ TaHomaCtl > Current
 TaHomaCtl > 
 ```
 
-# Why TaHomaCtl ?
+# 💡 Why TaHomaCtl ?
 
 ## Integration in my own automation solution
 
