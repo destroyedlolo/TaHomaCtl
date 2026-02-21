@@ -305,7 +305,7 @@ struct _commands {
 	{ "#", NULL, "Comment, ignored line", ARG_NO, NULL},
 	{ "?", func_qmark, "List available commands", ARG_NO, NULL},
 	{ "history", func_history, "List command line history", ARG_NO, NULL},
-	{ "Quit", func_quit, "See you", ARG_NO, NULL},
+	{ "quit", func_quit, "See you", ARG_NO, NULL},
 	{ NULL, NULL, NULL, ARG_NO, NULL}
 };
 
