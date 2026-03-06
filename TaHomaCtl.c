@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.13"
+#define VERSION "0.14"
 
 	/* **
 	 * Configuration
@@ -640,24 +640,27 @@ int main(int ac, char **av){
 		}
 	}
 	
-		/* Command line handling */
-	rl_attempted_completion_function = command_completion;
-	for(;;){
-		char *l = readline(isatty(STDIN_FILENO) ? "TaHomaCtl > ":NULL);
+	if(ascript)	/* Reading from a file */
+		execscript(ascript, false);
+	else {		/* Command line handling */
+		rl_attempted_completion_function = command_completion;
+		for(;;){
+			char *l = readline(isatty(STDIN_FILENO) ? "TaHomaCtl > ":NULL);
 		
-		if(!l)			// End requested
-			break;
+			if(!l)			// End requested
+				break;
 
-		char *line;
-		for(line = l; *line && !isgraph(*line); ++line);	// Strip spaces
+			char *line;
+			for(line = l; *line && !isgraph(*line); ++line);	// Strip spaces
 
-		if(*line){	// Ignore empty line
-			if(isatty(fileno(stdin)))
-				add_history(line);
+			if(*line){	// Ignore empty line
+				if(isatty(fileno(stdin)))
+					add_history(line);
 
-			execline(line);
+				execline(line);
+			}
+
+			free(l);
 		}
-
-		free(l);
 	}
 }
