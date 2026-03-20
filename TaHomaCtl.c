@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.14"
+#define VERSION "0.15"
 
 	/* **
 	 * Configuration
@@ -285,6 +285,7 @@ struct _commands {
 	{ "scan_Devices", func_scandevs, "Query and store attached devices", ARG_NO, NULL},
 	{ "Gateway", func_Tgw, "Query your gateway own configuration", ARG_NO, NULL},
 	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", ARG_NO, NULL },
+	{ "Event", func_Event, "Listen events", ARG_NO, NULL },
 
 	{ NULL, NULL, "Interacting by device's URL", ARG_NO, NULL},
 	{ "Device", func_Devs, "[URL] display device \"URL\" information or the devices list", ARG_URL, NULL },

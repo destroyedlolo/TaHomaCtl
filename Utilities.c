@@ -10,6 +10,9 @@
 #include <time.h>
 #include <assert.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 
 	/* Sometime we can modify the orignal string to parce token,
 	 * sometime we can't (as example during line edition).
@@ -108,4 +111,28 @@ char *dynstringAddSub(char *s, struct substring *add){
 	*(res + len + add->len) = 0;
 
 	return(res);
+}
+
+int inkey$(void){
+	struct termios oldt, newt;
+	int ch;
+	int oldf;
+
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);	/* Desactivate line and echo modes */
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+	ch = getchar();
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+	if(ch != EOF)
+		return ch;
+	else
+		return 0;
 }

@@ -45,6 +45,7 @@ extern const char *FreeAndSet(char **storage, const char *val);	/* Update a stor
 extern void spent(bool);	/* Time spent. Caution, not reentrant */
 extern char *dynstringAdd(char *s, const char *add);	/* Add 'add' string to s */
 extern char *dynstringAddSub(char *s, struct substring *add);
+extern int inkey$(void);
 
 	/* Configuration related */
 extern void clean(char **);		/* Safe free() an object */
@@ -72,6 +73,7 @@ void func_NStates(const char *);
 void func_Command(const char *);
 void func_NCommand(const char *);
 void func_Current(const char *);
+void func_Event(const char *);
 
 	/* Devices' */
 struct Command {

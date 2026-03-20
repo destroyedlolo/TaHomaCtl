@@ -5,6 +5,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
 #include <json-c/json.h>
 
 #define OBJPATH(...) (const char*[]){ __VA_ARGS__ }
@@ -683,4 +684,70 @@ void func_Current(const char *arg){
 	}
 
 	freeResponse(&buff);
+}
+
+void func_Event(const char *arg){
+	if(arg){
+		fputs("*E* Event doesn't expect an argument.\n", stderr);
+		return;
+	}
+
+	struct ResponseBuffer buff = {NULL};
+	callAPI("/events/register", "", &buff);
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+	if(!buff.memory){
+		fputs("*W* Empty response", stderr);
+		return;
+	}
+
+	struct json_object *parsed_json = json_tokener_parse(buff.memory);
+	const char *idobj = getObjString(parsed_json, OBJPATH( "id", NULL ));
+	if(!idobj){
+		json_object_put(parsed_json);
+		freeResponse(&buff);
+		return;
+	}
+
+	if(debug)
+		printf("*d* event id: %s\n", affString(idobj));
+
+	json_object_put(parsed_json);
+	freeResponse(&buff);
+
+	if(verbose)
+		puts("*I* Waiting for events");
+	
+	char fetchreq[strlen("/events//fetch") + strlen(idobj) +1];
+	sprintf(fetchreq, "/events/%s/fetch", idobj);
+	if(debug)
+		printf("*d* %s\n", fetchreq);
+
+	while(!inkey$()){
+		callAPI(fetchreq, "", &buff);
+		if(buff.memory){
+			if(debug)
+				printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+			struct json_object *parsed_json = json_tokener_parse(buff.memory);
+			if(json_object_array_length(parsed_json)){
+				printObject(parsed_json,0);
+			}
+			json_object_put(parsed_json);
+			freeResponse(&buff);
+		}
+
+		sleep(60);
+	}
+
+	char unregreq[strlen("/events//unregister") + strlen(idobj) +1];
+	sprintf(unregreq, "/events/%s/unregister", idobj);
+	if(debug)
+		printf("*d* %s\n", unregreq);
+	
+	callAPI(unregreq, "", &buff);
+
+	if(debug)
+		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 }
