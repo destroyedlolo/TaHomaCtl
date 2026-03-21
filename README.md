@@ -26,6 +26,7 @@ It is ideal for integration into shell scripts, crontabs, home automation backen
     + [Device's information](#device-s-information)
     + [Querying a device state](#querying-a-device-state)
     + [Steering a device](#steering-a-device)
+    + [Listening events](#Listening-events)
 - [💡 Why TaHomaCtl ?](#---why-tahomactl--)
   * [Integration in my own automation solution](#integration-in-my-own-automation-solution)
   * [Vibe coding testing](#vibe-coding-testing)
@@ -154,6 +155,7 @@ Interacting with the TaHoma
 'scan_Devices' : Query and store attached devices
 'Gateway' : Query your gateway own configuration
 'Current' : Get action group executions currently running and launched from the local API
+'Event' : Listen events
 
 Interacting by device's URL
 ---------------------------
@@ -410,6 +412,28 @@ TaHomaCtl > Current
 		]
 TaHomaCtl > 
 ```
+
+### Listening events
+
+```
+TaHomaCtl > Event 
+[
+	name :
+		"DeviceStateChangedEvent"
+	deviceURL :
+		"zigbee://xxxx-xxxx-xxxx/58849/1#3"
+	deviceStates :
+		[
+			type :
+				1
+			name :
+				"core:CO2ConcentrationState"
+			value :
+				520
+		]
+]
+```
+
 
 # 💡 Why TaHomaCtl ?
 
