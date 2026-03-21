@@ -92,7 +92,7 @@ static const char *affString(const char *v){
 }
 
 static void gentab(unsigned int n){
-	do 
+	if(n) do 
 		putchar('\t');
 	while(--n);
 }
@@ -726,19 +726,20 @@ void func_Event(const char *arg){
 
 	while(!inkey$()){
 		callAPI(fetchreq, "", &buff);
+		if(debug)
+			printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 		if(buff.memory){
-			if(debug)
-				printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
-
 			struct json_object *parsed_json = json_tokener_parse(buff.memory);
-			if(json_object_array_length(parsed_json)){
-				printObject(parsed_json,0);
-			}
+			if(json_object_is_type(parsed_json, json_type_array)){
+				if(json_object_array_length(parsed_json))
+					printObject(parsed_json,0);
+			} else
+				puts("*W* Response is not an array");
 			json_object_put(parsed_json);
 			freeResponse(&buff);
 		}
 
-		sleep(60);
+		sleep(30);
 	}
 
 	char unregreq[strlen("/events//unregister") + strlen(idobj) +1];
