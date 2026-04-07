@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.15"
+#define VERSION "0.16"
 
 	/* **
 	 * Configuration
@@ -62,8 +62,32 @@ static void func_script(const char *arg){
 
 static void func_token(const char *arg){
 	if(arg){
-		FreeAndSet(&token, arg);
-		buildURL();
+		if(*arg == '@'){	/* Read it from a file */
+			FILE *f = fopen(++arg, "r");
+			if(!f)
+				perror(arg);
+			else {
+				char *l = NULL;
+				size_t len = 0;
+				
+				if(getline(&l, &len, f) != -1){
+					char *c = strchr(l, '\n');	// Remove leading CR
+					if(c)
+						*c = 0;
+
+					FreeAndSet(&token, l);
+					buildURL();
+				}
+
+				if(l)
+					free(l);
+
+				fclose(f);
+			}
+		} else {
+			FreeAndSet(&token, arg);
+			buildURL();
+		}
 	} else
 		printf("*I* Token : %s\n", affval(token));
 }
@@ -371,15 +395,17 @@ static void execscript(const char *name, bool dontfail){
 	char *l = NULL;
 	size_t len = 0;
 	while(getline(&l, &len, f) != -1){
-		char *c = strchr(l, '\n');	// Remove leading CR
+		char *c = strchr(l, '\n');	/* Remove leading CR */
 		if(c)
 			*c = 0;
 
-		if(*l)	// Ignore empty line
+		if(*l)	/* Ignore empty line */
 			execline(l);
 	}
 
-	free(l);
+	if(l)
+		free(l);
+
 	fclose(f);
 }
 
