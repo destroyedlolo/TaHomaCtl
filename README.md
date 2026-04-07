@@ -218,6 +218,10 @@ If you saved it as "**.tahomactl**" in your home directory, it will be automatic
 > [!CAUTION]
 > Don't forget to indicate the bearer code using `TaHoma_token`
 
+> [!TIP]
+> You can specifile in which file the token is stored using a '@' as first character :  
+> `TaHoma_token @/path/to/file`
+
 While `status` will give you the current connection setting,
 `Gateway` will query your TaHoma about its own configuration.
 
