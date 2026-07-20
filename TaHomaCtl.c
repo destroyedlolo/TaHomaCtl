@@ -15,7 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define VERSION "0.16"
+#define VERSION "0.17"
 
 	/* **
 	 * Configuration
@@ -26,6 +26,8 @@ char *ip = NULL;
 uint16_t port = 0;
 char *token = NULL;
 bool unsafe = false;
+
+unsigned int sample = 30;
 
 char *url = NULL;
 size_t url_len;
@@ -149,12 +151,14 @@ static void func_status(const char *){
 		"\tTahoma's IP : %s\n"
 		"\tTahoma's port : %u\n"
 		"\tToken : %s\n"
-		"\tSSL chaine : %s\n",
+		"\tSSL chaine : %s\n"
+		"\tSampling interval : %u seconds\n",
 		affval(tahoma),
 		affval(ip),
 		port,
 		token ? "set": "unset",
-		unsafe ? "not checked (unsafe)" : "Enforced"
+		unsafe ? "not checked (unsafe)" : "Enforced",
+		sample
 	);
 	if(timeout)
 		printf("\tTimeout : %lds\n", timeout);
@@ -269,6 +273,16 @@ static void func_timeout(const char *arg){
 		fputs("timeout is execting the number of seconds to wait.\n", stderr);
 }
 
+static void func_sample(const char *arg){
+	if(arg){
+		sample = atoi(arg);
+
+		if(debug || verbose)
+			printf("*I* Sample interval : %us\n", sample);
+	} else
+		printf("*I* Sample interval : %us\n", sample);
+}
+
 static void func_quit(const char *){
 	exit(EXIT_SUCCESS);
 }
@@ -310,6 +324,7 @@ struct _commands {
 	{ "Gateway", func_Tgw, "Query your gateway own configuration", ARG_NO, NULL},
 	{ "Current", func_Current, "Get action group executions currently running and launched from the local API", ARG_NO, NULL },
 	{ "Event", func_Event, "Listen events", ARG_NO, NULL },
+	{ "sample", func_sample, "Events sampling interval", ARG_NO, NULL },
 
 	{ NULL, NULL, "Interacting by device's URL", ARG_NO, NULL},
 	{ "Device", func_Devs, "[URL] display device \"URL\" information or the devices list", ARG_URL, NULL },

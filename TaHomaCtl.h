@@ -21,6 +21,8 @@ extern uint16_t port;	/* TaHoma's port */
 extern char *token;		/* Bearer Token */
 extern bool unsafe;		/* Don't verify SSL chaine */
 
+extern unsigned int sample;	/* Delay b/w event's sample */
+
 extern char *url;	/* base API url */
 extern size_t url_len;	/* URL's length */
 extern long timeout;	/* API calling timeout */

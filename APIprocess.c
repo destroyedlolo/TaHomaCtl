@@ -739,7 +739,7 @@ void func_Event(const char *arg){
 			freeResponse(&buff);
 		}
 
-		sleep(30);
+		sleep(sample);
 	}
 
 	char unregreq[strlen("/events//unregister") + strlen(idobj) +1];
