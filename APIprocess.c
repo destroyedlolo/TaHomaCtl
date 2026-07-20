@@ -693,7 +693,7 @@ void func_Event(const char *arg){
 	}
 
 	struct ResponseBuffer buff = {NULL};
-	callAPI("/events/register", "", &buff);
+	callAPI("events/register", "", &buff);
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 
@@ -703,7 +703,7 @@ void func_Event(const char *arg){
 	}
 
 	struct json_object *parsed_json = json_tokener_parse(buff.memory);
-	const char *idobj = getObjString(parsed_json, OBJPATH( "id", NULL ));
+	const char *idobj = strdup(getObjString(parsed_json, OBJPATH( "id", NULL )));
 	if(!idobj){
 		json_object_put(parsed_json);
 		freeResponse(&buff);
@@ -719,8 +719,8 @@ void func_Event(const char *arg){
 	if(verbose)
 		puts("*I* Waiting for events");
 	
-	char fetchreq[strlen("/events//fetch") + strlen(idobj) +1];
-	sprintf(fetchreq, "/events/%s/fetch", idobj);
+	char fetchreq[strlen("events//fetch") + strlen(idobj) +1];
+	sprintf(fetchreq, "events/%s/fetch", idobj);
 	if(debug)
 		printf("*d* %s\n", fetchreq);
 
@@ -742,8 +742,8 @@ void func_Event(const char *arg){
 		sleep(sample);
 	}
 
-	char unregreq[strlen("/events//unregister") + strlen(idobj) +1];
-	sprintf(unregreq, "/events/%s/unregister", idobj);
+	char unregreq[strlen("events//unregister") + strlen(idobj) +1];
+	sprintf(unregreq, "events/%s/unregister", idobj);
 	if(debug)
 		printf("*d* %s\n", unregreq);
 	
@@ -751,4 +751,7 @@ void func_Event(const char *arg){
 
 	if(debug)
 		printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
+
+	freeResponse(&buff);
+	free((void *)idobj);
 }
