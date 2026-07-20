@@ -729,6 +729,10 @@ void func_Event(const char *arg){
 		if(debug)
 			printf("*D* Resp: '%s'\n", buff.memory ? buff.memory : "NULL data");
 		if(buff.memory){
+			if(debug || verbose){
+				time_t now = time(NULL);
+				printf("%s", ctime(&now));
+			}
 			struct json_object *parsed_json = json_tokener_parse(buff.memory);
 			if(json_object_is_type(parsed_json, json_type_array)){
 				if(json_object_array_length(parsed_json))
